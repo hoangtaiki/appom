@@ -13,9 +13,10 @@ Gem::Specification.new do |spec|
 
   spec.files         = Dir.glob('lib/**/*') + %w[LICENSE.txt README.md]
 
+  spec.required_ruby_version = '>= 2.2.3'
   spec.bindir        = 'exe'
   spec.require_paths = ['lib']
-  spec.add_dependency 'appium_lib', ['>= 9.15.1']
+  spec.add_dependency 'appium_lib', ['>= 9.4.10']
   spec.add_dependency 'cucumber', ['>= 2.3']
 
   spec.add_development_dependency 'rubocop', ['< 0.58']
