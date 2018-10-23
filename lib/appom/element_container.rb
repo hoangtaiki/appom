@@ -52,8 +52,8 @@ module Appom
       #
       def elements(name, *find_args)
         build(name, *find_args) do |*runtime_args, &block|
+          raise_if_block(self, name, !block.nil?, :elements)
           define_method(name) do
-            raise_if_block(self, name, !block.nil?, :elements)
             all(*find_args)
           end
         end
