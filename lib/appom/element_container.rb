@@ -4,18 +4,30 @@ module Appom
       klass.extend ClassMethods
     end
 
+    # Raise if contain a block
+    def raise_if_block(obj, name, has_block, type)
+      return unless has_block
+
+      puts "Type passed in: #{type}"
+      puts "#{obj.class}##{name} does not accept blocks"
+
+      raise Appom::UnsupportedBlockError
+    end
+
+    ##
+    # Options re-combiner. This takes the original inputs and combines
+    # them such that there is only one hash passed as a final argument
+    # to Appium.
+    #
+    def merge_args(find_args, runtime_args)
+      find_args = find_args.dup.flatten
+      runtime_args = runtime_args.dup
+
+      [*find_args, *runtime_args]
+    end
+
     module ClassMethods
       attr_reader :mapped_items
-
-      # Raise if contain a block
-      def raise_if_block(obj, name, has_block, type)
-        return unless has_block
-
-        puts "Type passed in: #{type}"
-        puts "#{obj.class}##{name} does not accept blocks"
-
-        raise Appom::UnsupportedBlockError
-      end
 
       ##
       #
@@ -31,9 +43,9 @@ module Appom
       #
       def element(name, *find_args)
         build(name, *find_args) do |*runtime_args, &block|
-          raise_if_block(self, name, !block.nil?, :element)
           define_method(name) do
-            find(*find_args)
+            raise_if_block(self, name, !block.nil?, :element)
+            find(*merge_args(find_args, runtime_args))
           end
         end
       end
@@ -52,9 +64,9 @@ module Appom
       #
       def elements(name, *find_args)
         build(name, *find_args) do |*runtime_args, &block|
-          raise_if_block(self, name, !block.nil?, :elements)
           define_method(name) do
-            all(*find_args)
+            raise_if_block(self, name, !block.nil?, :elements)
+            all(*merge_args(find_args, runtime_args))
           end
         end
       end
