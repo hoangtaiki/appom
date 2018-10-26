@@ -45,6 +45,12 @@ end
 ```
 `appium_lib_options` and `caps` are options to initiate a appium driver. You can follow [Appium Ruby Client](https://github.com/appium/ruby_lib)
 
+### Change default max wait time
+```ruby
+Appom.configure do |config|
+  config.max_wait_time = 30
+end
+```
 
 ### Define a page
 ```ruby
@@ -54,6 +60,9 @@ class LoginPage < Appom::Page
   element :sign_in_button, :accessibility_id, 'sign_in_button'
 end
 ```
+
+The Appom Wiki has lots of additional information about Appom. Please browse the Wiki after finishing this README:
+https://github.com/hoangtaiki/appom/wiki
 
 ## Example
 [authentication-appom-appium](https://github.com/hoangtaiki/authentication-appom-appium) is an example about using Appom with Appium. 
