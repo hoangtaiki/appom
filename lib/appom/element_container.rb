@@ -42,7 +42,7 @@ module Appom
       # Element doesn't support block so that will raise if pass a block when declare
       #
       def element(name, *find_args)
-        build(name, *find_args) do |*runtime_args, &block|
+        build_element(name, *find_args) do |*runtime_args, &block|
           define_method(name) do
             raise_if_block(self, name, !block.nil?, :element)
             find(*merge_args(find_args, runtime_args))
@@ -66,7 +66,7 @@ module Appom
       # Elements doesn't support block so that will raise if pass a block when declare
       #
       def elements(name, *find_args)
-        build(name, *find_args) do |*runtime_args, &block|
+        build_elements(name, *find_args) do |*runtime_args, &block|
           define_method(name) do
             raise_if_block(self, name, !block.nil?, :elements)
             all(*merge_args(find_args, runtime_args))
@@ -89,15 +89,33 @@ module Appom
 
       private
 
-      # Add item to @mapped_items or define method to notify that we can't find item without args
-      def build(name, *find_args)
+      # Add item to @mapped_items or define method for element
+      def build_element(name, *find_args)
         if find_args.empty?
           create_error_method(name)
         else
           add_to_mapped_items(name)
           yield
         end
-        add_helper_methods(name, *find_args)
+
+        create_existence_checker(name, *find_args)
+        create_nonexistence_checker(name, *find_args)
+        create_enable_checker(name, *find_args)
+        create_disable_checker(name, *find_args)
+      end
+
+      # Add item to @mapped_items or define method for elements
+      def build_elements(name, *find_args)
+        if find_args.empty?
+          create_error_method(name)
+        else
+          add_to_mapped_items(name)
+          yield
+        end
+
+        create_existence_checker(name, *find_args)
+        create_nonexistence_checker(name, *find_args)
+        create_get_all_elements(name, *find_args)
       end
 
       # Define method to notify that we can't find item without args
@@ -160,6 +178,32 @@ module Appom
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
             wait_check_util_empty(*args)
+          end
+        end
+      end
+
+      ##
+      # Try wait until element will be enable
+      #
+      def create_enable_checker(element_name, *find_args)
+        method_name = "#{element_name}_enable?"
+        create_helper_method(method_name, *find_args) do
+          define_method(method_name) do |*runtime_args|
+            args = merge_args(find_args, runtime_args)
+            wait_util_element_enabled(*args)
+          end
+        end
+      end
+
+      ##
+      # Wait until an element will be
+      #
+      def create_disable_checker(element_name, *find_args)
+        method_name = "#{element_name}_disable?"
+        create_helper_method(method_name, *find_args) do
+          define_method(method_name) do |*runtime_args|
+            args = merge_args(find_args, runtime_args)
+            wait_util_element_disabled(*args)
           end
         end
       end
