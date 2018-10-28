@@ -52,5 +52,21 @@ module Appom
         return result
       end
     end
+
+    ##
+    # Wait until an element will be enable
+    #
+    def wait_util_element_enabled(*find_args)
+      wait = Wait.new(timeout: Appom.max_wait_time)
+      wait.until { Appom.driver.find_element(*find_args).enabled? }
+    end
+
+    ##
+    # Wait until an element will be disable
+    #
+    def wait_util_element_disabled(*find_args)
+      wait = Wait.new(timeout: Appom.max_wait_time)
+      wait.until { !Appom.driver.find_element(*find_args).enabled? }
+    end
   end
 end
