@@ -47,6 +47,9 @@ module Appom
             raise_if_block(self, name, !block.nil?, :element)
             find(*merge_args(find_args, runtime_args))
           end
+          define_method("#{name}_params") do
+            merge_args(find_args, runtime_args)
+          end
         end
       end
 
@@ -67,6 +70,9 @@ module Appom
           define_method(name) do
             raise_if_block(self, name, !block.nil?, :elements)
             all(*merge_args(find_args, runtime_args))
+          end
+          define_method("#{name}_params") do
+            merge_args(find_args, runtime_args)
           end
         end
       end
