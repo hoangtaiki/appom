@@ -25,7 +25,7 @@ module Appom
 
       [*find_args, *runtime_args]
     end
-    
+
     module ClassMethods
       attr_reader :mapped_items
 
