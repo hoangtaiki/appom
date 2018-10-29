@@ -25,7 +25,7 @@ module Appom
 
       [*find_args, *runtime_args]
     end
-
+    
     module ClassMethods
       attr_reader :mapped_items
 
@@ -42,13 +42,13 @@ module Appom
       # Element doesn't support block so that will raise if pass a block when declare
       #
       def element(name, *find_args)
-        build_element(name, *find_args) do |*runtime_args, &block|
-          define_method(name) do
+        build_element(name, *find_args) do
+          define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :element)
-            find(*merge_args(find_args, runtime_args))
+            _find(*merge_args(find_args, runtime_args))
           end
           define_method("#{name}_params") do
-            merge_args(find_args, runtime_args)
+            merge_args(find_args)
           end
         end
       end
@@ -66,13 +66,41 @@ module Appom
       # Elements doesn't support block so that will raise if pass a block when declare
       #
       def elements(name, *find_args)
-        build_elements(name, *find_args) do |*runtime_args, &block|
-          define_method(name) do
+        build_elements(name, *find_args) do
+          define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :elements)
-            all(*merge_args(find_args, runtime_args))
+            _all(*merge_args(find_args, runtime_args))
           end
           define_method("#{name}_params") do
-            merge_args(find_args, runtime_args)
+            merge_args(find_args)
+          end
+        end
+      end
+
+      def section(name, *args, &block)
+        section_class, find_args = extract_section_options(args, &block)
+        build_element(name, *find_args) do
+          define_method(name) do |*runtime_args, &block|
+            section_element = _find(*merge_args(find_args, runtime_args))
+            section_class.new(self, section_element)
+          end
+          define_method("#{name}_params") do
+            merge_args(find_args)
+          end
+        end
+      end
+
+      def sections(name, *args, &block)
+        section_class, find_args = extract_section_options(args, &block)
+        build(name, *find_args) do
+          define_method(name) do |*runtime_args, &block|
+            raise_if_block(self, name, !block.nil?, :sections)
+            _all(*merge_args(find_args, runtime_args)).map do |element|
+              section_class.new(self, element)
+            end
+          end
+          define_method("#{name}_params") do
+            merge_args(find_args)
           end
         end
       end
@@ -207,6 +235,49 @@ module Appom
           end
         end
       end
+
+      ##
+      # Extract section options
+      # @return section class name and the remaining parameters
+      #
+      def extract_section_options(args, &block)
+        if args.first.is_a?(Class)
+          klass = args.shift
+          section_class = klass if klass.ancestors.include?(Appom::Section)
+        end
+
+        section_class = deduce_section_class(section_class, &block)
+        arguments = deduce_search_arguments(section_class, args)
+        [section_class, arguments]
+      end
+
+      ##
+      # Deduce section class
+      #
+      def deduce_section_class(base_class, &block)
+        klass = base_class
+
+        klass = Class.new(klass || Appom::Section, &block) if block_given?
+
+        unless klass
+          raise ArgumentError, 'You should provide descendant of Appom::Section class or/and a block as the second argument.'
+        end
+        klass
+      end
+
+      ##
+      # Deduce search parameters
+      #
+      def deduce_search_arguments(section_class, args)
+        extract_search_arguments(args) ||
+          extract_search_arguments(section_class.default_search_arguments) ||
+          raise(ArgumentError, 'You should provide search arguments in section creation or set_default_search_arguments within section class')
+      end
+
+      def extract_search_arguments(args)
+        args if args && !args.empty?
+      end
+
     end
   end
 end
