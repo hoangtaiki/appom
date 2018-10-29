@@ -3,3 +3,7 @@
 - Add `#element_params` function to get parameters when define element
 - Add `#element_anable` function to wait until element will be enable
 - Add `#element_disable` function to wait until element will be disable
+
+## [0.7.0] - 2018-29-10
+### Added
+- Add `#section`
