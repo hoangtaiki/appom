@@ -18,6 +18,8 @@ module Appom
   autoload :ElementContainer, 'appom/element_container'
   autoload :Page, 'appom/page'
   autoload :Wait, 'appom/wait'
+  autoload :Section, 'appom/section'
+  autoload :ElementFinder, 'appom/element_finder'
 
   class << self
     attr_accessor :driver
