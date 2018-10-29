@@ -19,7 +19,7 @@ module Appom
     # them such that there is only one hash passed as a final argument
     # to Appium.
     #
-    def merge_args(find_args, runtime_args)
+    def merge_args(find_args, runtime_args={})
       find_args = find_args.dup.flatten
       runtime_args = runtime_args.dup
 
