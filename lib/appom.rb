@@ -14,6 +14,8 @@ module Appom
   class TimeoutError < StandardError; end
   # An element could not be located on the page using the given search parameters.
   class NoSuchElementError < StandardError; end
+  # An elements is empty using the given search parameters.
+  class ElementsEmptyError < StandardError; end
 
   autoload :ElementContainer, 'appom/element_container'
   autoload :Page, 'appom/page'
