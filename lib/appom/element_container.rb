@@ -92,7 +92,7 @@ module Appom
 
       def sections(name, *args, &block)
         section_class, find_args = extract_section_options(args, &block)
-        build(name, *find_args) do
+        build_elements(name, *find_args) do
           define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :sections)
             _all(*merge_args(find_args, runtime_args)).map do |element|
