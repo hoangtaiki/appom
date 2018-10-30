@@ -92,7 +92,7 @@ module Appom
 
       def sections(name, *args, &block)
         section_class, find_args = extract_section_options(args, &block)
-        build_elements(name, *find_args) do
+        build_sections(section_class, name, *find_args) do
           define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :sections)
             _all(*merge_args(find_args, runtime_args)).map do |element|
@@ -117,7 +117,7 @@ module Appom
 
       private
 
-      # Add item to @mapped_items or define method for element
+      # Add item to @mapped_items or define method for element and section
       def build_element(name, *find_args)
         if find_args.empty?
           create_error_method(name)
@@ -146,17 +146,25 @@ module Appom
         create_get_all_elements(name, *find_args)
       end
 
+      # Add item to @mapped_items or define method for elements
+      def build_sections(section_class, name, *find_args)
+        if find_args.empty?
+          create_error_method(name)
+        else
+          add_to_mapped_items(name)
+          yield
+        end
+
+        create_existence_checker(name, *find_args)
+        create_nonexistence_checker(name, *find_args)
+        create_get_all_sections(section_class, name, *find_args)
+      end
+
       # Define method to notify that we can't find item without args
       def create_error_method(name)
         define_method(name) do
           raise Appom::InvalidElementError
         end
-      end
-
-      def add_helper_methods(name, *find_args)
-        create_existence_checker(name, *find_args)
-        create_nonexistence_checker(name, *find_args)
-        create_get_all_elements(name, *find_args)
       end
 
       def create_helper_method(proposed_method_name, *find_args)
@@ -206,6 +214,21 @@ module Appom
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
             wait_util_get_not_empty(*args)
+          end
+        end
+      end
+
+      ##
+      # Try to get all sections until not get empty array
+      #
+      def create_get_all_sections(section_class, element_name, *find_args)
+        method_name = "get_all_#{element_name}"
+        create_helper_method(method_name, *find_args) do
+          define_method(method_name) do |*runtime_args|
+            args = merge_args(find_args, runtime_args)
+            wait_util_get_not_empty(*args).map do |element|
+              section_class.new(self, element)
+            end
           end
         end
       end
