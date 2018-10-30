@@ -205,7 +205,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_check_util_empty(*args)
+            wait_util_get_not_empty(*args)
           end
         end
       end
