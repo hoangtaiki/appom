@@ -43,7 +43,7 @@ module Appom
         result = page.find_elements(*find_args)
         # If reponse is empty we will return false to make it not pass Wait condition
         if result.empty?
-          return false
+          raise Appom::ElementsEmptyError, "Array is empty"
         end
         # Return result
         return result
