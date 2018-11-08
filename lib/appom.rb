@@ -34,8 +34,8 @@ module Appom
 
     # Register a new appium driver for Appom.
     # @return [Appium::Driver] A appium driver instance
-    def register_driver(&block)
-      @driver = block.call()
+    def register_driver
+      @driver = yield
       setup_exit_handler
     end
 
@@ -49,7 +49,7 @@ module Appom
       @driver.reset
     end
 
-    # After run all scenario and exit we will quit driver to close appliction under test
+    # After run all scenario and exit we will quit driver to close application under test
     def setup_exit_handler
       main = Process.pid
       at_exit do

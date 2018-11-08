@@ -17,7 +17,7 @@ module Appom
 
     def parent_page
       candidate_page = parent
-      until candidate_page.is_a?(SitePrism::Page)
+      until candidate_page.is_a?(Appom::Page)
         candidate_page = candidate_page.parent
       end
       candidate_page
