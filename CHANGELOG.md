@@ -7,3 +7,10 @@
 ## [0.7.0] - 2018-29-10
 ### Added
 - Add `#section`
+
+## [0.8.0] - 2018-10-11
+### Added
+- Add `#element_verify_text` function to get element text and compare with text pass when define element
+### Edited
+- Create a function to define `#element_params`
+
