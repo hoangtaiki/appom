@@ -42,14 +42,15 @@ module Appom
       # Element doesn't support block so that will raise if pass a block when declare
       #
       def element(name, *find_args)
-        build_element(name, *find_args) do
+        text, args = deduce_element_text(find_args)
+        build_element(name, *args) do
           define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :element)
-            _find(*merge_args(find_args, runtime_args))
+            _find(*merge_args(args, runtime_args))
           end
-          define_method("#{name}_params") do
-            merge_args(find_args)
-          end
+
+          create_get_element_params(name, args)
+          create_verify_element_text(name, text, args)
         end
       end
 
@@ -71,9 +72,8 @@ module Appom
             raise_if_block(self, name, !block.nil?, :elements)
             _all(*merge_args(find_args, runtime_args))
           end
-          define_method("#{name}_params") do
-            merge_args(find_args)
-          end
+
+          create_get_element_params(name, find_args)
         end
       end
 
@@ -84,10 +84,11 @@ module Appom
             section_element = _find(*merge_args(find_args, runtime_args))
             section_class.new(self, section_element)
           end
-          define_method("#{name}_params") do
-            merge_args(find_args)
-          end
+
+          create_get_element_params(name, find_args)
         end
+
+
       end
 
       def sections(name, *args, &block)
@@ -99,9 +100,8 @@ module Appom
               section_class.new(self, element)
             end
           end
-          define_method("#{name}_params") do
-            merge_args(find_args)
-          end
+
+          create_get_element_params(name, find_args)
         end
       end
 
@@ -257,6 +257,66 @@ module Appom
             wait_util_element_disabled(*args)
           end
         end
+      end
+
+      ##
+      # Verify text for an element
+      #
+      def create_verify_element_text(element_name, text, *find_args)
+        method_name = "#{element_name}_verify_text"
+
+        create_helper_method(method_name, *find_args) do
+          define_method(method_name) do |*runtime_args|
+            # Raise if element have no text value
+            if text.nil?
+              raise(ElementsDefineNoTextError, "#{name} element is define with no text value")
+            end
+
+            args = merge_args(find_args, runtime_args)
+            element = _find(*args)
+            element_text = element.text
+            if !element_text.eql?(text)
+              raise(ElementsTextVerifyError, "expected: value == #{text} got: #{element_text}")
+            end
+          end
+        end
+      end
+
+      ##
+      # Get parameter is passed when declared element
+      #
+      def create_get_element_params(element_name, *find_args)
+        method_name = "#{element_name}_params"
+        create_helper_method(method_name, *find_args) do
+          define_method(method_name) do
+            merge_args(find_args)
+          end
+        end
+      end
+
+      ##
+      # Deduce text value
+      # @return expected text for element and the remaining parameters
+      #
+      def deduce_element_text(args)
+        # Flatten argument array first if we are in case array inside array
+        args = args.flatten
+
+        if args.empty?
+          raise(ArgumentError, 'You should provide search arguments in element creation')
+        end
+
+        # Get last key and check if it contain 'text' key
+        last_key = args.last
+        text = nil
+        if last_key.is_a?(Hash)
+          if last_key.key?(:text)
+            text = last_key[:text]
+            args.pop
+          end
+        end
+
+        [text, args]
       end
 
       ##
