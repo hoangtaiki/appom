@@ -37,7 +37,7 @@ module Appom
     # Use wait to get elements
     # Before timeout we will try to find elements until response is not empty
     #
-    def wait_util_get_not_empty(*find_args)
+    def wait_until_get_not_empty(*find_args)
       wait = Wait.new(timeout: Appom.max_wait_time)
       wait.until do
         result = page.find_elements(*find_args)
