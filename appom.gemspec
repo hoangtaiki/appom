@@ -17,6 +17,6 @@ Gem::Specification.new do |spec|
   spec.bindir        = 'exe'
   spec.require_paths = ['lib']
   spec.add_dependency 'appium_lib', '~> 9.4'
-  spec.add_dependency 'cucumber', '~> 2'
+  spec.add_dependency 'cucumber', '>= 2.3'
   spec.add_development_dependency 'rubocop', '~> 0.58'
 end
