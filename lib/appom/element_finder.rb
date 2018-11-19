@@ -15,7 +15,7 @@ module Appom
     # Use wait to check element non-exist
     # Before timeout we will try to find elements and check response is empty
     #
-    def wait_check_util_empty(*find_args)
+    def wait_check_until_empty(*find_args)
       wait = Wait.new(timeout: Appom.max_wait_time)
       wait.until do
         page.find_elements(*find_args).empty?
@@ -26,7 +26,7 @@ module Appom
     # Use wait to check element exist
     # Before timeout we will try to find elements and check response is not empty
     #
-    def wait_check_util_not_empty(*find_args)
+    def wait_check_until_not_empty(*find_args)
       wait = Wait.new(timeout: Appom.max_wait_time)
       wait.until do
         !page.find_elements(*find_args).empty?
@@ -53,7 +53,7 @@ module Appom
     ##
     # Wait until an element will be enable
     #
-    def wait_util_element_enabled(*find_args)
+    def wait_until_element_enabled(*find_args)
       wait = Wait.new(timeout: Appom.max_wait_time)
       wait.until { page.find_element(*find_args).enabled? }
     end
@@ -61,7 +61,7 @@ module Appom
     ##
     # Wait until an element will be disable
     #
-    def wait_util_element_disabled(*find_args)
+    def wait_until_element_disabled(*find_args)
       wait = Wait.new(timeout: Appom.max_wait_time)
       wait.until { !page.find_element(*find_args).enabled? }
     end

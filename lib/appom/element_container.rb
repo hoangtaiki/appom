@@ -185,7 +185,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_check_util_not_empty(*args)
+            wait_check_until_not_empty(*args)
           end
         end
       end
@@ -200,7 +200,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_check_util_empty(*args)
+            wait_check_until_empty(*args)
           end
         end
       end
@@ -213,7 +213,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_util_get_not_empty(*args)
+            wait_until_get_not_empty(*args)
           end
         end
       end
@@ -226,7 +226,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_util_get_not_empty(*args).map do |element|
+            wait_until_get_not_empty(*args).map do |element|
               section_class.new(self, element)
             end
           end
@@ -241,7 +241,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_util_element_enabled(*args)
+            wait_until_element_enabled(*args)
           end
         end
       end
@@ -254,7 +254,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_util_element_disabled(*args)
+            wait_until_element_disabled(*args)
           end
         end
       end
