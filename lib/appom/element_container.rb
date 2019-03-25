@@ -14,6 +14,38 @@ module Appom
       raise Appom::UnsupportedBlockError
     end
 
+    # # Check container has element
+    # def not_contain_element(element_name)
+    #   element_params = send("#{element_name}_params")
+    #   wait_until('no element exists', *element_params)
+    # end
+    #
+    # # Check container has elements
+    # def contain_elements(element_names)
+    #   element_names.each do |element|
+    #     contain_element(element)
+    #   end
+    # end
+    #
+    # Check container has element
+    # def contain_element(element_name)
+    #   element_params = send("#{element_name}_params")
+    #   puts "Elemenet params = #{element_params}"
+    #   wait_until('at least one element exists', *element_params)
+    # end
+    #
+    # # Check container has element and element is disabled
+    # def contain_disabled_element(element_name)
+    #   element_params = send("#{element_name}_params")
+    #   wait_until('element disable', *element_params)
+    # end
+    #
+    # # Check container has element and element is enabled
+    # def contain_enableb_element(element_name)
+    #   element_params = send("#{element_name}_params")
+    #   wait_until('element enable', *element_params)
+    # end
+
     ##
     # Options re-combiner. This takes the original inputs and combines
     # them such that there is only one hash passed as a final argument
@@ -46,11 +78,16 @@ module Appom
         build_element(name, *args) do
           define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :element)
-            _find(*merge_args(args, runtime_args))
+            if text.nil?
+              _find(*merge_args(args, runtime_args))
+            else
+              find_element_has_text(text, *merge_args(args, runtime_args))
+            end
           end
 
-          create_get_element_params(name, args)
           create_verify_element_text(name, text, args)
+
+          create_get_element_params(name, find_args)
         end
       end
 
@@ -87,8 +124,6 @@ module Appom
 
           create_get_element_params(name, find_args)
         end
-
-
       end
 
       def sections(name, *args, &block)
@@ -191,21 +226,6 @@ module Appom
       end
 
       ##
-      # Check element non-existent
-      # We will try to find all elements with *find_args
-      # Condition is pass when response is empty
-      #
-      def create_nonexistence_checker(element_name, *find_args)
-        method_name = "wait_until_has_no_#{element_name}"
-        create_helper_method(method_name, *find_args) do
-          define_method(method_name) do |*runtime_args|
-            args = merge_args(find_args, runtime_args)
-            wait_check_until_empty(*args)
-          end
-        end
-      end
-
-      ##
       # Try to get all elements until not get empty array
       #
       def create_get_all_elements(element_name, *find_args)
@@ -233,28 +253,44 @@ module Appom
         end
       end
 
+
       ##
-      # Try wait until element will be enable
+      # Check element non-existent
+      # We will try to find all elements with *find_args
+      # Condition is pass when response is empty
+      #
+      def create_nonexistence_checker(element_name, *find_args)
+        method_name = "wait_until_has_no_#{element_name}"
+        create_helper_method(method_name, *find_args) do
+          define_method(method_name) do |*runtime_args|
+            args = merge_args(find_args, runtime_args)
+            wait_check_until_empty(*args)
+          end
+        end
+      end
+
+      ##
+      # Wait until element will be enable
       #
       def create_enable_checker(element_name, *find_args)
         method_name = "wait_until_#{element_name}_enable"
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_until_element_enabled(*args)
+            wait_until('element enabled', *args)
           end
         end
       end
 
       ##
-      # Wait until an element will be
+      # Wait until an element will be disable
       #
       def create_disable_checker(element_name, *find_args)
         method_name = "wait_until_#{element_name}_disable"
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_until_element_disabled(*args)
+            wait_until('element disabled', *args)
           end
         end
       end
@@ -360,7 +396,6 @@ module Appom
       def extract_search_arguments(args)
         args if args && !args.empty?
       end
-
     end
   end
 end
