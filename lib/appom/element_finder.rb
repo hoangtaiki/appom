@@ -11,6 +11,13 @@ module Appom
       page.find_elements(*find_args)
     end
 
+    # Check page has or has not elment with find_args
+    # If page has element return TRUE else return FALSE
+    def _check_has_element(*find_args)
+      elements = page.find_elements(*find_args)
+      return elements.empty? ? false : true
+    end
+
     ##
     # Use wait to get elements
     # Before timeout we will try to find elements until response return array is not empty

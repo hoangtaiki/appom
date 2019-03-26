@@ -211,7 +211,7 @@ module Appom
       # Condition is pass when response is not empty
       #
       def create_existence_checker(element_name, *find_args)
-        method_name = "wait_until_has_#{element_name}"
+        method_name = "has_#{element_name}"
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
@@ -226,7 +226,7 @@ module Appom
       # Condition is pass when response is empty
       #
       def create_nonexistence_checker(element_name, *find_args)
-        method_name = "wait_until_has_no_#{element_name}"
+        method_name = "has_no_#{element_name}"
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
@@ -239,7 +239,7 @@ module Appom
       # Wait until element will be enable
       #
       def create_enable_checker(element_name, *find_args)
-        method_name = "wait_until_#{element_name}_enable"
+        method_name = "#{element_name}_enable"
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
@@ -252,7 +252,7 @@ module Appom
       # Wait until an element will be disable
       #
       def create_disable_checker(element_name, *find_args)
-        method_name = "wait_until_#{element_name}_disable"
+        method_name = "#{element_name}_disable"
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
