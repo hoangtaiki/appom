@@ -10,7 +10,7 @@ module Appom
     def _all(*find_args)
       page.find_elements(*find_args)
     end
-    
+
     ##
     # Use wait to get elements
     # Before timeout we will try to find elements until response return array is not empty
