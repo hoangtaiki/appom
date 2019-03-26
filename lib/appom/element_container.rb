@@ -14,38 +14,6 @@ module Appom
       raise Appom::UnsupportedBlockError
     end
 
-    # # Check container has element
-    # def not_contain_element(element_name)
-    #   element_params = send("#{element_name}_params")
-    #   wait_until('no element exists', *element_params)
-    # end
-    #
-    # # Check container has elements
-    # def contain_elements(element_names)
-    #   element_names.each do |element|
-    #     contain_element(element)
-    #   end
-    # end
-    #
-    # Check container has element
-    # def contain_element(element_name)
-    #   element_params = send("#{element_name}_params")
-    #   puts "Elemenet params = #{element_params}"
-    #   wait_until('at least one element exists', *element_params)
-    # end
-    #
-    # # Check container has element and element is disabled
-    # def contain_disabled_element(element_name)
-    #   element_params = send("#{element_name}_params")
-    #   wait_until('element disable', *element_params)
-    # end
-    #
-    # # Check container has element and element is enabled
-    # def contain_enableb_element(element_name)
-    #   element_params = send("#{element_name}_params")
-    #   wait_until('element enable', *element_params)
-    # end
-
     ##
     # Options re-combiner. This takes the original inputs and combines
     # them such that there is only one hash passed as a final argument
@@ -85,9 +53,8 @@ module Appom
             end
           end
 
-          create_verify_element_text(name, text, args)
-
-          create_get_element_params(name, find_args)
+          create_get_element_params(name, args)
+          define_get_element_text(name, text)
         end
       end
 
@@ -211,21 +178,6 @@ module Appom
       end
 
       ##
-      # Check element exist
-      # We will try to find all elements with *find_args
-      # Condition is pass when response is not empty
-      #
-      def create_existence_checker(element_name, *find_args)
-        method_name = "wait_until_has_#{element_name}"
-        create_helper_method(method_name, *find_args) do
-          define_method(method_name) do |*runtime_args|
-            args = merge_args(find_args, runtime_args)
-            wait_check_until_not_empty(*args)
-          end
-        end
-      end
-
-      ##
       # Try to get all elements until not get empty array
       #
       def create_get_all_elements(element_name, *find_args)
@@ -253,6 +205,20 @@ module Appom
         end
       end
 
+      ##
+      # Check element exist
+      # We will try to find all elements with *find_args
+      # Condition is pass when response is not empty
+      #
+      def create_existence_checker(element_name, *find_args)
+        method_name = "wait_until_has_#{element_name}"
+        create_helper_method(method_name, *find_args) do
+          define_method(method_name) do |*runtime_args|
+            args = merge_args(find_args, runtime_args)
+            wait_until('at least one element exists', *args)
+          end
+        end
+      end
 
       ##
       # Check element non-existent
@@ -264,7 +230,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_check_until_empty(*args)
+            wait_until('no element exists', *args)
           end
         end
       end
@@ -296,29 +262,6 @@ module Appom
       end
 
       ##
-      # Verify text for an element
-      #
-      def create_verify_element_text(element_name, text, *find_args)
-        method_name = "#{element_name}_verify_text"
-
-        create_helper_method(method_name, *find_args) do
-          define_method(method_name) do |*runtime_args|
-            # Raise if element have no text value
-            if text.nil?
-              raise(ElementsDefineNoTextError, "#{name} element is define with no text value")
-            end
-
-            args = merge_args(find_args, runtime_args)
-            element = _find(*args)
-            element_text = element.text
-            if !element_text.eql?(text)
-              raise(ElementsTextVerifyError, "expected: value == #{text} got: #{element_text}")
-            end
-          end
-        end
-      end
-
-      ##
       # Get parameter is passed when declared element
       #
       def create_get_element_params(element_name, *find_args)
@@ -327,6 +270,16 @@ module Appom
           define_method(method_name) do
             merge_args(find_args)
           end
+        end
+      end
+
+      ##
+      # Get text is passed when declared element
+      #
+      def define_get_element_text(element_name, text)
+        method_name = "#{element_name}_text"
+        define_method(method_name) do
+          text
         end
       end
 
