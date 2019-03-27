@@ -243,7 +243,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_until('element enabled', *args)
+            wait_until('element enable', *args)
           end
         end
       end
@@ -256,7 +256,7 @@ module Appom
         create_helper_method(method_name, *find_args) do
           define_method(method_name) do |*runtime_args|
             args = merge_args(find_args, runtime_args)
-            wait_until('element disabled', *args)
+            wait_until('element disable', *args)
           end
         end
       end
