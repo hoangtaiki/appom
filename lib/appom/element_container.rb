@@ -42,7 +42,8 @@ module Appom
       # Element doesn't support block so that will raise if pass a block when declare
       #
       def element(name, *find_args)
-        text, args = deduce_element_text(find_args)
+        args, text = deduce_element_args(find_args)
+
         build_element(name, *args) do
           define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :element)
@@ -284,10 +285,10 @@ module Appom
       end
 
       ##
-      # Deduce text value
-      # @return expected text for element and the remaining parameters
+      # Deduce args and other parameters
+      # @return args for appium and other parameters
       #
-      def deduce_element_text(args)
+      def deduce_element_args(args)
         # Flatten argument array first if we are in case array inside array
         args = args.flatten
 
@@ -298,14 +299,17 @@ module Appom
         # Get last key and check if it contain 'text' key
         last_key = args.last
         text = nil
-        if last_key.is_a?(Hash)
-          if last_key.key?(:text)
-            text = last_key[:text]
-            args.pop
+
+        args.each do |arg|
+          if arg.is_a?(Hash)
+            # Extract text value
+            if arg.key?(:text)
+              text = arg[:text]
+              args.delete(arg)
+            end
           end
         end
-
-        [text, args]
+        [args, text]
       end
 
       ##
