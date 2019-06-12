@@ -41,7 +41,6 @@ module Appom
       wait = Wait.new(timeout: Appom.max_wait_time)
       wait.until do
         elements = page.find_elements(*find_args)
-        is_found = false
         elements.each do |element|
           element_text = element.text
           if element_text == text
@@ -49,10 +48,7 @@ module Appom
           end
         end
 
-        if !is_found
-          raise Appom::ElementsEmptyError, "Not found element with text #{text}"
-        end
-        return result
+        raise Appom::ElementsEmptyError, "Not found element with text #{text}"
       end
     end
 
