@@ -297,7 +297,6 @@ module Appom
         end
 
         # Get last key and check if it contain 'text' key
-        last_key = args.last
         text = nil
 
         args.each do |arg|
