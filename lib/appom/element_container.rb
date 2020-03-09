@@ -42,20 +42,13 @@ module Appom
       # Element doesn't support block so that will raise if pass a block when declare
       #
       def element(name, *find_args)
-        args, text = deduce_element_args(find_args)
-
-        build_element(name, *args) do
+        build_element(name, *find_args) do
           define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :element)
-            if text.nil?
-              _find(*merge_args(args, runtime_args))
-            else
-              find_element_has_text(text, *merge_args(args, runtime_args))
-            end
+            _find(*merge_args(find_args, runtime_args))
           end
 
-          create_get_element_params(name, args)
-          define_get_element_text(name, text)
+          create_get_element_params(name, find_args)
         end
       end
 
@@ -272,43 +265,6 @@ module Appom
             merge_args(find_args)
           end
         end
-      end
-
-      ##
-      # Get text is passed when declared element
-      #
-      def define_get_element_text(element_name, text)
-        method_name = "#{element_name}_text"
-        define_method(method_name) do
-          text
-        end
-      end
-
-      ##
-      # Deduce args and other parameters
-      # @return args for appium and other parameters
-      #
-      def deduce_element_args(args)
-        # Flatten argument array first if we are in case array inside array
-        args = args.flatten
-
-        if args.empty?
-          raise(ArgumentError, 'You should provide search arguments in element creation')
-        end
-
-        # Get last key and check if it contain 'text' key
-        text = nil
-
-        args.each do |arg|
-          if arg.is_a?(Hash)
-            # Extract text value
-            if arg.key?(:text)
-              text = arg[:text]
-              args.delete(arg)
-            end
-          end
-        end
-        [args, text]
       end
 
       ##
