@@ -3,7 +3,16 @@ module Appom
     # Find an element
     def _find(*find_args)
       wait = Wait.new(timeout: Appom.max_wait_time)
-      wait.until { page.find_element(*find_args) }
+      wait.until do
+        elements = page.find_elements(*find_args)
+        elements.each do |element|
+          if element.displayed?
+            return element
+          end
+        end
+
+        raise Appom::ElementsEmptyError, "Not found element displayed"
+      end
     end
 
     # Find elements
@@ -42,13 +51,12 @@ module Appom
       wait.until do
         elements = page.find_elements(*find_args)
         elements.each do |element|
-          element_text = element.text
-          if element_text == text
+          if element.displayed? && element.text == text
             return element
           end
-        end
 
-        raise Appom::ElementsEmptyError, "Not found element with text #{text}"
+          raise Appom::ElementsEmptyError, "Not found element with text #{text}"
+        end
       end
     end
 
