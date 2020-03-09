@@ -2,16 +2,32 @@ module Appom
   module ElementFinder
     # Find an element
     def _find(*find_args)
+      args, text, visible = deduce_element_args(find_args)
       wait = Wait.new(timeout: Appom.max_wait_time)
+
       wait.until do
-        elements = page.find_elements(*find_args)
+        elements = page.find_elements(*args)
         elements.each do |element|
-          if element.displayed?
+          # No need to check. Just return first element
+          if visible.nil? && text.nil?
             return element
           end
-        end
 
-        raise Appom::ElementsEmptyError, "Not found element displayed"
+          if !visible.nil? && !text.nil?
+            if element.displayed? && element.text == text
+              return element
+            end
+          elsif !visible.nil?
+            if element.displayed?
+              return element
+            end
+          elsif !text.nil?
+            if element.text == text
+              return element
+            end
+          end
+        end
+        raise Appom::ElementsEmptyError, "Not found element with text #{text}"
       end
     end
 
@@ -44,22 +60,6 @@ module Appom
       end
     end
 
-    # Find element with has text match with `text` value
-    # If not find element will raise error
-    def find_element_has_text(text, *find_args)
-      wait = Wait.new(timeout: Appom.max_wait_time)
-      wait.until do
-        elements = page.find_elements(*find_args)
-        elements.each do |element|
-          if element.displayed? && element.text == text
-            return element
-          end
-
-          raise Appom::ElementsEmptyError, "Not found element with text #{text}"
-        end
-      end
-    end
-
     # Function is used to check
     # Note: Function WILL NOT RETURN ELEMENT
     def wait_until(type, *find_args)
@@ -80,6 +80,37 @@ module Appom
           page.find_elements(*find_args).empty?
         end
       end
+    end
+
+    private
+
+    def deduce_element_args(args)
+      # Flatten argument array first if we are in case array inside array
+      args = args.flatten
+
+      if args.empty?
+        raise(ArgumentError, 'You should provide search arguments in element creation')
+      end
+
+      # Get last key and check if it contain 'text' key
+      text = nil
+      visible = nil
+
+      args.each do |arg|
+        if arg.is_a?(Hash)
+          # Extract text value
+          if arg.key?(:text)
+            text = arg[:text]
+            args.delete(arg)
+          end
+          # Extract visible value
+          if arg.key?(:visible)
+            visible = arg[:visible]
+            args.delete(arg)
+          end
+        end
+      end
+      [args, text, visible]
     end
   end
 end
