@@ -36,7 +36,7 @@ module Appom
       page.find_elements(*find_args)
     end
 
-    # Check page has or has not elment with find_args
+    # Check page has or has not element with find_args
     # If page has element return TRUE else return FALSE
     def _check_has_element(*find_args)
       elements = page.find_elements(*find_args)
@@ -68,16 +68,18 @@ module Appom
         case type
         # Function only return true if element enabled or raise an error if time out
         when 'element enable'
-          page.find_element(*find_args).enabled?
+          _find(*find_args).enabled?
         # Function only return true if element disabled or raise an error if time out
         when 'element disable'
-          !page.find_element(*find_args).enabled?
+          !_find(*find_args).enabled?
         # Function only return true if we can find at leat one element (array is not empty) or raise error
         when 'at least one element exists'
-          !page.find_elements(*find_args).empty?
+          args, text, visible = deduce_element_args(find_args)
+          !page.find_elements(*args).empty?
         # Function only return true if we can't find at leat one element (array is empty) or raise error
         when 'no element exists'
-          page.find_elements(*find_args).empty?
+          args, text, visible = deduce_element_args(find_args)
+          page.find_elements(*args).empty?
         end
       end
     end
