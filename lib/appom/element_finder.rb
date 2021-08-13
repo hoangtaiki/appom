@@ -8,11 +8,6 @@ module Appom
       wait.until do
         elements = page.find_elements(*args)
         elements.each do |element|
-          # No need to check. Just return first element
-          if visible.nil? && text.nil?
-            return element
-          end
-
           if !visible.nil? && !text.nil?
             if element.displayed? && element.text == text
               return element
@@ -25,9 +20,12 @@ module Appom
             if element.text == text
               return element
             end
+          # Just return first element
+          else
+            return element
           end
         end
-        raise Appom::ElementsEmptyError, "Not found element with text #{text}"
+        raise Appom::ElementsEmptyError, "Can not found element with args = #{find_args}"
       end
     end
 
@@ -39,8 +37,29 @@ module Appom
     # Check page has or has not element with find_args
     # If page has element return TRUE else return FALSE
     def _check_has_element(*find_args)
-      elements = page.find_elements(*find_args)
-      return elements.empty? ? false : true
+      elements = page.find_elements(*args)
+
+      if visible.nil? && text.nil? 
+        return elements.empty? ? false : true
+      else
+        is_found = false
+        elements.each do |element|
+          if !visible.nil? && !text.nil?
+            if element.displayed? && element.text == text
+              is_found = true
+            end
+          elsif !visible.nil?
+            if element.displayed?
+              is_found = true
+            end
+          elsif !text.nil?
+            if element.text == text
+              is_found = true
+            end
+          end
+        end
+        return is_found
+      end
     end
 
     ##
@@ -53,7 +72,7 @@ module Appom
         result = page.find_elements(*find_args)
         # If reponse is empty we will return false to make it not pass Wait condition
         if result.empty?
-          raise Appom::ElementsEmptyError, "Array is empty"
+          raise Appom::ElementsEmptyError, "Can not found any elements with args = #{find_args}"
         end
         # Return result
         return result
