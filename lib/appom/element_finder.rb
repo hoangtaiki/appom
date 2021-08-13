@@ -31,7 +31,28 @@ module Appom
 
     # Find elements
     def _all(*find_args)
-      page.find_elements(*find_args)
+      args, text, visible = deduce_element_args(find_args)
+      elements = page.find_elements(*args)
+      els = []
+
+      elements.each do |element|
+        if !visible.nil? && !text.nil?
+          if element.displayed? && element.text == text
+            els.push(element)
+          end
+        elsif !visible.nil?
+          if element.displayed?
+            els.push(element)
+          end
+        elsif !text.nil?
+          if element.text == text
+            els.push(element)
+          end
+        else
+          els.push(element)
+        end
+      end
+      return els
     end
 
     # Check page has or has not element with find_args
@@ -93,12 +114,10 @@ module Appom
           !_find(*find_args).enabled?
         # Function only return true if we can find at leat one element (array is not empty) or raise error
         when 'at least one element exists'
-          args, text, visible = deduce_element_args(find_args)
-          !page.find_elements(*args).empty?
+          !_all(*find_args).empty?
         # Function only return true if we can't find at leat one element (array is empty) or raise error
         when 'no element exists'
-          args, text, visible = deduce_element_args(find_args)
-          page.find_elements(*args).empty?
+          _all(*find_args).empty?
         end
       end
     end
