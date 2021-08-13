@@ -1,3 +1,3 @@
 module Appom
-  VERSION = '1.3.0'.freeze
+  VERSION = '1.3.2'.freeze
 end
