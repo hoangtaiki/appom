@@ -9,17 +9,6 @@ module Appom
   class InvalidElementError < StandardError; end
   # A block was passed to the method, which it cannot interpreter.
   class UnsupportedBlockError < StandardError; end
-  # The condition that was being evaluated inside the block did not evaluate
-  # to true within the time limit.
-  class TimeoutError < StandardError; end
-  # An element could not be located on the page using the given search parameters.
-  class NoSuchElementError < StandardError; end
-  # An elements is empty using the given search parameters.
-  class ElementsEmptyError < StandardError; end
-  # Text from an element not equal expected text
-  class ElementsTextVerifyError < StandardError; end
-  # An element is define with no text value
-  class ElementsDefineNoTextError < StandardError; end
 
   autoload :ElementContainer, 'appom/element_container'
   autoload :Page, 'appom/page'
