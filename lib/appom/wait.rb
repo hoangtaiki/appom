@@ -23,18 +23,20 @@ module Appom
     #
     def until
       end_time = Time.now + @timeout
+      error_message = ""
 
       until Time.now > end_time
         begin
           result = yield
           return result if result
-        rescue
+        rescue => error
+          error_message = error.message
         end
 
         sleep @interval
       end
 
-      raise Appom::TimeoutError, "Timed out after #{@timeout}s."
+      raise StandardError, error_message
     end
   end
 end

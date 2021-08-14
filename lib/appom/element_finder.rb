@@ -25,7 +25,7 @@ module Appom
             return element
           end
         end
-        raise Appom::ElementsEmptyError, "Can not found element with args = #{find_args}"
+        raise StandardError, "Can not found element with args = #{find_args}"
       end
     end
 
@@ -58,6 +58,7 @@ module Appom
     # Check page has or has not element with find_args
     # If page has element return TRUE else return FALSE
     def _check_has_element(*find_args)
+      args, text, visible = deduce_element_args(find_args)
       elements = page.find_elements(*args)
 
       if visible.nil? && text.nil? 
@@ -91,9 +92,9 @@ module Appom
       wait = Wait.new(timeout: Appom.max_wait_time)
       wait.until do
         result = page.find_elements(*find_args)
-        # If reponse is empty we will return false to make it not pass Wait condition
+        # If response is empty we will return false to make it not pass Wait condition
         if result.empty?
-          raise Appom::ElementsEmptyError, "Can not found any elements with args = #{find_args}"
+          raise StandardError, "Can not found any elements with args = #{find_args}"
         end
         # Return result
         return result
@@ -111,13 +112,30 @@ module Appom
           _find(*find_args).enabled?
         # Function only return true if element disabled or raise an error if time out
         when 'element disable'
-          !_find(*find_args).enabled?
-        # Function only return true if we can find at leat one element (array is not empty) or raise error
+          result = _find(*find_args)
+          if result.enabled?
+            raise StandardError, "Still found an element enable with args = #{find_args}"
+          end
+          return true
+        # Function only return true if we can find at least one element (array is not empty) or raise error
         when 'at least one element exists'
-          !_all(*find_args).empty?
-        # Function only return true if we can't find at leat one element (array is empty) or raise error
+          result = _all(*find_args)
+          if result.empty?
+            raise StandardError, "Could not find any elements with args = #{find_args}"
+          end
+          return true
+
+        # Function only return true if we can't find at least one element (array is empty) or raise error
         when 'no element exists'
-          _all(*find_args).empty?
+          result = _all(*find_args)
+          if !result.empty?
+            if result.size > 1
+              raise StandardError, "Still found #{result.size} elements with args = #{find_args}"
+            else
+              raise StandardError, "Still found #{result.size} element with args = #{find_args}"
+            end
+          end
+          return true
         end
       end
     end
