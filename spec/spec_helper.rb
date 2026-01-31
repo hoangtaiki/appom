@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SimpleCov disabled for testing
 # require 'simplecov'
 # SimpleCov.start do
@@ -16,7 +18,7 @@ WebMock.disable_net_connect!(allow_localhost: true)
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = '.rspec_status'
 
   # Disable RSpec exposing methods globally on Module and main
   config.disable_monkey_patching!
@@ -26,23 +28,23 @@ RSpec.configure do |config|
   end
 
   # Mock Appium driver for tests
-  config.before(:each) do
+  config.before do
     mock_driver = double('appium_driver')
     allow(mock_driver).to receive(:start_driver)
     allow(mock_driver).to receive(:reset)
     allow(mock_driver).to receive(:driver_quit)
     allow(mock_driver).to receive(:find_element)
     allow(mock_driver).to receive(:find_elements).and_return([])
-    
+
     Appom.driver = mock_driver
     Appom.max_wait_time = 1 # Use short timeout for tests
-    
+
     # Reset Phase 2 systems before each test (disabled to prevent infinite logging)
     # Appom::Performance.reset! if defined?(Appom::Performance)
-    # Appom::ElementState.clear! if defined?(Appom::ElementState) 
+    # Appom::ElementState.clear! if defined?(Appom::ElementState)
     # Appom::Visual.clear_results! if defined?(Appom::Visual)
     # Appom::ElementCache.clear_cache if defined?(Appom::ElementCache)
-    
+
     # Set test-friendly configuration
     if defined?(Appom::Configuration)
       Appom::Configuration.set('performance.monitoring_enabled', true)
@@ -53,21 +55,21 @@ RSpec.configure do |config|
     end
   end
 
-  config.after(:each) do
+  config.after do
     Appom.driver = nil
-    
+
     # Clean up Phase 2 systems after each test (disabled to prevent infinite logging)
     # Appom::Performance.reset! if defined?(Appom::Performance)
     # Appom::ElementState.clear! if defined?(Appom::ElementState)
     # Appom::Visual.clear_results! if defined?(Appom::Visual)
     # Appom::ElementCache.clear_cache if defined?(Appom::ElementCache)
-    
+
     # Clean up any test files created during visual testing
     Dir.glob('spec/fixtures/**/*').each do |file|
       File.delete(file) if File.file?(file)
     end
   end
-  
+
   # Configure slow test filter
   config.filter_run_excluding slow: true unless ENV['RUN_SLOW_TESTS'] == 'true'
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Appom
   # Base exception for all Appom-related errors
   class AppomError < StandardError
@@ -17,13 +19,13 @@ module Appom
 
   # Element-related errors
   class ElementError < AppomError; end
-  
+
   # Raised when an element was defined without proper arguments
   class InvalidElementError < ElementError
     def initialize(element_name = nil)
-      message = "Element"
+      message = 'Element'
       message += " '#{element_name}'" if element_name
-      message += " was defined without proper selector arguments"
+      message += ' was defined without proper selector arguments'
       super(message)
     end
   end
@@ -31,7 +33,7 @@ module Appom
   # Raised when an element cannot be found within the timeout
   class ElementNotFoundError < ElementError
     def initialize(selector = nil, timeout = nil)
-      message = "Element not found"
+      message = 'Element not found'
       message += " with selector: #{selector}" if selector
       message += " within #{timeout}s" if timeout
       super(message, { selector: selector, timeout: timeout })
@@ -49,8 +51,12 @@ module Appom
 
   # Wait-related errors
   class WaitError < AppomError
+    attr_reader :condition, :timeout
+
     def initialize(condition, timeout)
-      super("Wait condition '#{condition}' not met within #{timeout}s", 
+      @condition = condition
+      @timeout = timeout
+      super("Wait condition '#{condition}' not met within #{timeout}s",
             { condition: condition, timeout: timeout })
     end
   end
@@ -61,13 +67,17 @@ module Appom
   # Raised when driver is not properly initialized
   class DriverNotInitializedError < DriverError
     def initialize
-      super("Appium driver not initialized. Please call Appom.register_driver first.")
+      super('Appium driver not initialized. Please call Appom.register_driver first.')
     end
   end
 
   # Raised when driver operations fail
   class DriverOperationError < DriverError
+    attr_reader :operation, :cause
+
     def initialize(operation, cause = nil)
+      @operation = operation
+      @cause = cause
       message = "Driver operation '#{operation}' failed"
       message += ": #{cause}" if cause
       super(message, { operation: operation, cause: cause })
@@ -87,12 +97,12 @@ module Appom
   # Block/syntax errors
   class UnsupportedBlockError < AppomError
     def initialize(method_name, type)
-      super("#{type}##{method_name} does not accept blocks", 
+      super("#{type}##{method_name} does not accept blocks",
             { method: method_name, type: type })
     end
   end
 
-  # Section-related errors  
+  # Section-related errors
   class SectionError < AppomError; end
 
   class InvalidSectionError < SectionError
@@ -102,18 +112,9 @@ module Appom
   end
 
   # Timeout and waiting errors
-  module Exceptions
-    class TimeoutError < AppomError
-      def initialize(message = "Operation timed out")
-        super(message)
-      end
-    end
-  end
-
-  # Also create the timeout error at module level for backward compatibility
   class TimeoutError < AppomError
-    def initialize(message = "Operation timed out")
-      super(message)
+    def initialize(message = 'Operation timed out')
+      super
     end
   end
 end

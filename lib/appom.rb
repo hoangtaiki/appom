@@ -13,9 +13,9 @@ require 'appom/screenshot'
 require 'appom/configuration'
 
 # The main Appom module provides a comprehensive Page Object Model framework for Appium.
-# 
+#
 # Appom gives you a simple, clean and semantic DSL for describing mobile applications.
-# It implements the Page Object Model pattern on top of Appium with enhanced error 
+# It implements the Page Object Model pattern on top of Appium with enhanced error
 # handling, logging, performance monitoring, visual testing, and element state tracking.
 #
 # @example Basic usage
@@ -24,7 +24,7 @@ require 'appom/configuration'
 #     Appium::Driver.new(options, false)
 #   end
 #
-#   # Configure global settings  
+#   # Configure global settings
 #   Appom.configure do |config|
 #     config.max_wait_time = 30
 #   end
@@ -32,9 +32,9 @@ require 'appom/configuration'
 #   # Define page objects with enhanced features
 #   class LoginPage < Appom::Page
 #     element :email, :id, 'email_field'
-#     element :password, :id, 'password_field'  
+#     element :password, :id, 'password_field'
 #     element :submit, :accessibility_id, 'submit_button'
-#     
+#
 #     def login_with_monitoring(email, password)
 #       Appom::Performance.time_operation('login_process') do
 #         self.email.set email
@@ -56,8 +56,8 @@ require 'appom/configuration'
 # @see https://github.com/hoangtaiki/appom
 # @author Harry.Tran
 module Appom
-  include Logging
-  extend Logging
+  include Appom::Logging
+  extend Appom::Logging
 
   autoload :ElementContainer, 'appom/element_container'
   autoload :Page, 'appom/page'
@@ -75,8 +75,7 @@ module Appom
   autoload :Visual, 'appom/visual'
 
   class << self
-    attr_accessor :driver
-    attr_accessor :max_wait_time
+    attr_accessor :driver, :max_wait_time
 
     # Configure appom global settings
     #
@@ -103,26 +102,24 @@ module Appom
     #     }
     #     Appium::Driver.new(options, false)
     #   end
-    def register_driver
-      log_info("Registering Appium driver")
-      
+    def register_driver(&)
+      log_info('Registering Appium driver')
+
       # Register driver with performance monitoring
-      @driver = Performance.time_operation('driver_registration') do
-        yield
-      end
-      
+      @driver = Performance.time_operation('driver_registration', &)
+
       setup_exit_handler
-      
+
       # Initialize element state tracking if enabled
       if Configuration.get('element_state.tracking_enabled', false)
         ElementState.tracker
-        log_info("Element state tracking initialized")
+        log_info('Element state tracking initialized')
       end
-      
-      log_info("Appium driver registered successfully")
+
+      log_info('Appium driver registered successfully')
       @driver
-    rescue => e
-      log_error("Failed to register driver", { error: e.message })
+    rescue StandardError => e
+      log_error('Failed to register driver', { error: e.message })
       raise DriverError, "Failed to register driver: #{e.message}"
     end
 
@@ -132,35 +129,41 @@ module Appom
     # @raise [DriverOperationError] If driver start fails
     def start_driver
       raise DriverNotInitializedError unless @driver
-      log_info("Starting Appium driver")
-      
+
+      log_info('Starting Appium driver')
+
       # Start driver with performance monitoring
       Performance.time_operation('driver_start') do
         @driver.start_driver
       end
-      
-      log_info("Appium driver started successfully")
-    rescue => e
-      log_error("Failed to start driver", { error: e.message })
+
+      log_info('Appium driver started successfully')
+    rescue DriverNotInitializedError
+      raise
+    rescue StandardError => e
+      log_error('Failed to start driver', { error: e.message })
       raise DriverOperationError.new('start_driver', e.message)
     end
 
     # Reset the device, relaunching the application
     #
-    # @raise [DriverNotInitializedError] If no driver has been registered  
+    # @raise [DriverNotInitializedError] If no driver has been registered
     # @raise [DriverOperationError] If driver reset fails
     def reset_driver
       raise DriverNotInitializedError unless @driver
-      log_info("Resetting Appium driver")
-      
+
+      log_info('Resetting Appium driver')
+
       # Reset driver with performance monitoring
       Performance.time_operation('driver_reset') do
         @driver.reset
       end
-      
-      log_info("Appium driver reset successfully")
-    rescue => e
-      log_error("Failed to reset driver", { error: e.message })
+
+      log_info('Appium driver reset successfully')
+    rescue DriverNotInitializedError
+      raise
+    rescue StandardError => e
+      log_error('Failed to reset driver', { error: e.message })
       raise DriverOperationError.new('reset', e.message)
     end
 
@@ -168,49 +171,59 @@ module Appom
     def setup_exit_handler
       main = Process.pid
       at_exit do
-        begin
-          # Export performance metrics before quitting
-          if defined?(Performance) && Performance.monitor.metrics.any?
-            Performance.export_metrics(format: :json)
-            log_info("Performance metrics exported on exit")
-          end
-          
-          @driver&.driver_quit if Process.pid == main
-        rescue => e
-          # Log error but don't raise during exit
-          warn "Warning: Failed to quit driver during exit: #{e.message}"
-        end
+        cleanup_on_exit(main)
       end
     end
-    
+
+    private
+
+    # Extracted method to enable testing
+    def cleanup_on_exit(main_pid)
+      return unless Process.pid == main_pid
+
+      begin
+        # Export performance metrics before quitting
+        if defined?(Performance) && Performance.monitor.metrics.any?
+          Performance.export_metrics(format: :json)
+          log_info('Performance metrics exported on exit')
+        end
+
+        @driver&.driver_quit
+      rescue StandardError => e
+        # Log error but don't raise during exit
+        warn "Warning: Failed to quit driver during exit: #{e.message}"
+      end
+    end
+
+    public
+
     # Performance monitoring convenience methods
     def performance_stats
       Performance.summary
     end
-    
-    def export_performance_metrics(**options)
-      Performance.export_metrics(**options)
+
+    def export_performance_metrics(**)
+      Performance.export_metrics(**)
     end
-    
+
     # Visual testing convenience methods
-    def visual_regression_test(name, **options)
-      Visual.regression_test(name, **options)
+    def visual_regression_test(name, **)
+      Visual.regression_test(name, **)
     end
-    
-    def generate_visual_report(**options)
-      Visual.generate_report(**options)
+
+    def generate_visual_report(**)
+      Visual.generate_report(**)
     end
-    
+
     # Element state tracking convenience methods
     def element_tracking_summary
       ElementState.tracking_summary
     end
-    
-    def export_element_tracking(**options)
-      ElementState.export_data(**options)
+
+    def export_element_tracking(**)
+      ElementState.export_data(**)
     end
   end
 
   @max_wait_time = 20
 end
-

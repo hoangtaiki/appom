@@ -1,33 +1,28 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe Appom::ElementState do
   let(:tracker) { Appom::ElementState::Tracker.new }
   let(:mock_element) { double('element') }
-  
+
   before do
     # Mock common element methods
-    allow(mock_element).to receive(:displayed?).and_return(true)
-    allow(mock_element).to receive(:enabled?).and_return(true)
-    allow(mock_element).to receive(:selected?).and_return(false)
-    allow(mock_element).to receive(:text).and_return('Button Text')
     allow(mock_element).to receive(:attribute) do |attr|
       case attr
       when :id then 'test_button'
       when :class then 'btn btn-primary'
       when :name then 'submit'
-      else nil
       end
     end
-    allow(mock_element).to receive(:location).and_return({ x: 100, y: 200 })
-    allow(mock_element).to receive(:size).and_return({ width: 80, height: 30 })
-    allow(mock_element).to receive(:object_id).and_return(12345)
+    allow(mock_element).to receive_messages(displayed?: true, enabled?: true, selected?: false, text: 'Button Text', location: { x: 100, y: 200 }, size: { width: 80, height: 30 })
   end
 
   describe Appom::ElementState::Tracker do
     describe '#track_element' do
       it 'starts tracking an element with generated ID' do
         element_id = tracker.track_element(mock_element)
-        
+
         expect(tracker.tracked_elements).to have_key(element_id)
         tracked = tracker.tracked_elements[element_id]
         expect(tracked[:element]).to eq(mock_element)
@@ -38,7 +33,7 @@ RSpec.describe Appom::ElementState do
 
       it 'accepts custom name and context' do
         element_id = tracker.track_element(mock_element, name: 'submit_button', context: { page: 'login' })
-        
+
         tracked = tracker.tracked_elements[element_id]
         expect(tracked[:name]).to eq('submit_button')
         expect(tracked[:context][:page]).to eq('login')
@@ -47,7 +42,7 @@ RSpec.describe Appom::ElementState do
       it 'captures comprehensive element state' do
         element_id = tracker.track_element(mock_element)
         state = tracker.tracked_elements[element_id][:current_state]
-        
+
         expect(state[:exists]).to be true
         expect(state[:displayed]).to be true
         expect(state[:enabled]).to be true
@@ -67,19 +62,18 @@ RSpec.describe Appom::ElementState do
           # Initial state
           initial_state = tracker.element_state(element_id)
           expect(initial_state[:text]).to eq('Button Text')
-          
+
           # Change element state
-          allow(mock_element).to receive(:text).and_return('Updated Text')
-          allow(mock_element).to receive(:enabled?).and_return(false)
-          
+          allow(mock_element).to receive_messages(text: 'Updated Text', enabled?: false)
+
           # Update and check for changes
           change_event = tracker.update_element_state(element_id)
-          
+
           expect(change_event).to be_a(Hash)
           expect(change_event[:changes]).to have_key(:text)
           expect(change_event[:changes][:text][:from]).to eq('Button Text')
           expect(change_event[:changes][:text][:to]).to eq('Updated Text')
-          
+
           expect(change_event[:changes]).to have_key(:enabled)
           expect(change_event[:changes][:enabled][:from]).to be true
           expect(change_event[:changes][:enabled][:to]).to be false
@@ -89,10 +83,10 @@ RSpec.describe Appom::ElementState do
           # Change state multiple times
           allow(mock_element).to receive(:text).and_return('State 1')
           tracker.update_element_state(element_id)
-          
+
           allow(mock_element).to receive(:text).and_return('State 2')
           tracker.update_element_state(element_id)
-          
+
           tracked = tracker.tracked_elements[element_id]
           expect(tracked[:previous_states].size).to be >= 1
           expect(tracked[:change_count]).to be >= 2
@@ -103,7 +97,7 @@ RSpec.describe Appom::ElementState do
             allow(mock_element).to receive(:text).and_return("State #{i}")
             tracker.update_element_state(element_id)
           end
-          
+
           tracked = tracker.tracked_elements[element_id]
           expect(tracked[:previous_states].size).to eq(10)
         end
@@ -112,9 +106,9 @@ RSpec.describe Appom::ElementState do
       context 'when element state remains the same' do
         it 'does not record changes' do
           initial_change_count = tracker.tracked_elements[element_id][:change_count]
-          
+
           change_event = tracker.update_element_state(element_id)
-          
+
           expect(change_event).to be_nil
           expect(tracker.tracked_elements[element_id][:change_count]).to eq(initial_change_count)
         end
@@ -127,9 +121,9 @@ RSpec.describe Appom::ElementState do
       it 'returns change history for specific element' do
         allow(mock_element).to receive(:text).and_return('Changed Text')
         tracker.update_element_state(element_id)
-        
+
         history = tracker.element_history(element_id)
-        
+
         expect(history).to be_an(Array)
         expect(history.length).to be >= 1
         expect(history.first[:element_id]).to eq(element_id)
@@ -141,7 +135,7 @@ RSpec.describe Appom::ElementState do
           allow(mock_element).to receive(:text).and_return("History #{i}")
           tracker.update_element_state(element_id)
         end
-        
+
         history = tracker.element_history(element_id, limit: 5)
         expect(history.size).to eq(5)
       end
@@ -156,16 +150,16 @@ RSpec.describe Appom::ElementState do
           sleep(0.1)
           allow(mock_element).to receive(:enabled?).and_return(false)
         end
-        
+
         result = tracker.wait_for_state_change(element_id, expected_changes: { enabled: false }, timeout: 1)
-        
+
         expect(result[:enabled]).to be false
       end
 
       it 'raises timeout error when state does not change' do
         expect do
           tracker.wait_for_state_change(element_id, expected_changes: { enabled: false }, timeout: 0.1)
-        end.to raise_error(Appom::Exceptions::TimeoutError, /Element state did not change/)
+        end.to raise_error(Appom::TimeoutError, /Element state did not change/)
       end
     end
 
@@ -177,9 +171,9 @@ RSpec.describe Appom::ElementState do
           sleep(0.1)
           allow(mock_element).to receive(:displayed?).and_return(false)
         end
-        
+
         result = tracker.wait_for_state(element_id, { displayed: false }, timeout: 1)
-        
+
         expect(result[:displayed]).to be false
       end
 
@@ -188,10 +182,10 @@ RSpec.describe Appom::ElementState do
           sleep(0.1)
           allow(mock_element).to receive(:text).and_return('Ready')
         end
-        
+
         condition = ->(state) { state[:text] == 'Ready' }
         result = tracker.wait_for_state(element_id, condition, timeout: 1)
-        
+
         expect(result[:text]).to eq('Ready')
       end
     end
@@ -202,9 +196,9 @@ RSpec.describe Appom::ElementState do
       it 'stops tracking and returns summary' do
         allow(mock_element).to receive(:text).and_return('Changed')
         tracker.update_element_state(element_id)
-        
+
         summary = tracker.stop_tracking(element_id)
-        
+
         expect(tracker.tracked_elements).not_to have_key(element_id)
         expect(summary[:name]).to eq('stop_test')
         expect(summary[:change_count]).to eq(1)
@@ -220,7 +214,7 @@ RSpec.describe Appom::ElementState do
 
       it 'provides comprehensive tracking summary' do
         summary = tracker.tracking_summary
-        
+
         expect(summary[:total_tracked]).to eq(2)
         expect(summary[:tracking_enabled]).to be true
         expect(summary[:most_active]).to be_an(Hash)
@@ -231,17 +225,15 @@ RSpec.describe Appom::ElementState do
     describe '#find_elements_by_state' do
       before do
         tracker.track_element(mock_element, name: 'enabled_element')
-        
+
         disabled_element = double('disabled_element')
-        allow(disabled_element).to receive(:displayed?).and_return(true)
-        allow(disabled_element).to receive(:enabled?).and_return(false)
+        allow(disabled_element).to receive_messages(displayed?: true, enabled?: false)
         allow(disabled_element).to receive_messages(
           selected?: false,
           text: 'Disabled',
           attribute: nil,
           location: { x: 0, y: 0 },
           size: { width: 50, height: 20 },
-          object_id: 67890
         )
         tracker.track_element(disabled_element, name: 'disabled_element')
       end
@@ -249,7 +241,7 @@ RSpec.describe Appom::ElementState do
       it 'finds elements by state criteria hash' do
         enabled_elements = tracker.find_elements_by_state(enabled: true)
         disabled_elements = tracker.find_elements_by_state(enabled: false)
-        
+
         expect(enabled_elements.size).to eq(1)
         expect(disabled_elements.size).to eq(1)
         expect(enabled_elements.keys.first).to include('enabled_element')
@@ -258,7 +250,7 @@ RSpec.describe Appom::ElementState do
       it 'finds elements by state criteria proc' do
         text_criteria = ->(state) { state[:text]&.include?('Button') }
         matching_elements = tracker.find_elements_by_state(text_criteria)
-        
+
         expect(matching_elements.size).to eq(1)
       end
     end
@@ -272,22 +264,22 @@ RSpec.describe Appom::ElementState do
 
       it 'exports tracking data to JSON' do
         file_path = tracker.export_tracking_data(format: :json, file_path: 'tracking_test.json')
-        
+
         expect(File.exist?(file_path)).to be true
         data = JSON.parse(File.read(file_path))
         expect(data['tracked_elements']).to have_key('export_test')
         expect(data['state_history']).to be_an(Array)
-        
+
         File.delete(file_path)
       end
 
       it 'exports tracking data to YAML' do
         file_path = tracker.export_tracking_data(format: :yaml, file_path: 'tracking_test.yml')
-        
+
         expect(File.exist?(file_path)).to be true
         data = YAML.load_file(file_path, permitted_classes: [Time, Symbol], aliases: true)
         expect(data[:tracked_elements]).to have_key('export_test')
-        
+
         File.delete(file_path)
       end
     end
@@ -302,39 +294,39 @@ RSpec.describe Appom::ElementState do
 
       it 'notifies observers on element tracking' do
         tracker.track_element(mock_element, name: 'observed_element')
-        
+
         expect(observer_calls).to include(a_collection_starting_with([:element_tracked]))
       end
 
       it 'notifies observers on state changes' do
         element_id = tracker.track_element(mock_element, name: 'changing_element')
         observer_calls.clear
-        
+
         allow(mock_element).to receive(:text).and_return('New Text')
         tracker.update_element_state(element_id)
-        
+
         expect(observer_calls).to include(a_collection_starting_with([:state_changed]))
       end
     end
   end
 
   describe 'Global ElementState module' do
-    before { Appom::ElementState.clear! }
-    after { Appom::ElementState.clear! }
+    before { described_class.clear! }
+    after { described_class.clear! }
 
     describe '.track_element' do
       it 'uses the global tracker' do
-        element_id = Appom::ElementState.track_element(mock_element, name: 'global_test')
-        
-        expect(Appom::ElementState.tracker.tracked_elements).to have_key(element_id)
+        element_id = described_class.track_element(mock_element, name: 'global_test')
+
+        expect(described_class.tracker.tracked_elements).to have_key(element_id)
       end
     end
 
     describe '.tracking_summary' do
       it 'returns global tracking summary' do
-        Appom::ElementState.track_element(mock_element, name: 'summary_test')
-        summary = Appom::ElementState.tracking_summary
-        
+        described_class.track_element(mock_element, name: 'summary_test')
+        summary = described_class.tracking_summary
+
         expect(summary[:total_tracked]).to eq(1)
       end
     end
@@ -344,14 +336,15 @@ RSpec.describe Appom::ElementState do
     let(:test_class) do
       Class.new do
         include Appom::ElementState::Monitoring
+
         track_state_changes
-        
+
         def initialize(element)
           @element = element
         end
-        
+
         private
-        
+
         attr_reader :element
       end
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'logger'
 
 module Appom
@@ -22,7 +24,7 @@ module Appom
       def create_default_logger
         logger = Logger.new($stdout)
         logger.level = Logger::INFO
-        logger.formatter = proc do |severity, datetime, progname, msg|
+        logger.formatter = proc do |severity, datetime, _progname, msg|
           "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] #{severity.ljust(5)} [Appom] #{msg}\n"
         end
         logger
@@ -69,7 +71,7 @@ module Appom
 
     def format_message(message, context)
       return message if context.empty?
-      
+
       context_str = context.map { |k, v| "#{k}=#{v}" }.join(' ')
       "#{message} | #{context_str}"
     end
@@ -81,15 +83,15 @@ module Appom
       Logging.logger = custom_logger
     else
       logger = Logger.new(output || $stdout)
-      case level.to_s.downcase
-      when 'debug' then logger.level = Logger::DEBUG
-      when 'info' then logger.level = Logger::INFO  
-      when 'warn' then logger.level = Logger::WARN
-      when 'error' then logger.level = Logger::ERROR
-      when 'fatal' then logger.level = Logger::FATAL
-      else logger.level = Logger::INFO
-      end
-      logger.formatter = proc do |severity, datetime, progname, msg|
+      logger.level = case level.to_s.downcase
+                     when 'debug' then Logger::DEBUG
+                     when 'info' then Logger::INFO
+                     when 'warn' then Logger::WARN
+                     when 'error' then Logger::ERROR
+                     when 'fatal' then Logger::FATAL
+                     else Logger::INFO
+                     end
+      logger.formatter = proc do |severity, datetime, _progname, msg|
         "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] #{severity.ljust(5)} [Appom] #{msg}\n"
       end
       Logging.logger = logger

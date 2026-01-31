@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe Appom::Page do
   let(:mock_driver) { double('appium_driver') }
-  let(:page) { Class.new(Appom::Page).new }
+  let(:page) { Class.new(described_class).new }
 
   before do
     Appom.driver = mock_driver
