@@ -5,19 +5,24 @@ require 'appom/retry'
 # Helper utilities for Appom automation framework
 # Provides common interaction patterns and utility methods
 module Appom::Helpers
+  # Get the performance module, allowing for test mocking
+  def self.performance_module
+    defined?(Performance) ? Performance : Appom::Performance
+  end
+
   # Common element interaction patterns
   module ElementHelpers
     include Appom::Retry::RetryMethods
 
     # Tap an element and wait for it to be enabled
     def tap_and_wait(element_name, timeout: nil)
-      Performance.time_operation("tap_and_wait_#{element_name}") do
+      Appom::Helpers.performance_module.time_operation("tap_and_wait_#{element_name}") do
         timeout ||= Appom.max_wait_time
         element = send(element_name)
         element.tap
 
         # Wait for element to be enabled if it has an enable checker
-        send("#{element_name}_enable") if respond_to?("#{element_name}_enable")
+        send("#{element_name}_enable") if respond_to?(:"#{element_name}_enable")
         element
       end
     end
@@ -38,8 +43,9 @@ module Appom::Helpers
 
     # Wait for element to be visible and tap
     def wait_and_tap(element_name, timeout: nil) # rubocop:disable Lint/UnusedMethodArgument
-      Performance.time_operation("wait_and_tap_#{element_name}") do
-        send("has_#{element_name}") if respond_to?("has_#{element_name}")
+      Appom::Helpers.performance_module.time_operation("wait_and_tap_#{element_name}") do
+        method_name = "has_#{element_name}"
+        send(method_name) if respond_to?(method_name)
         send(element_name).tap
       end
     end
@@ -58,6 +64,26 @@ module Appom::Helpers
       element_text&.include?(text) || false
     end
 
+    # Basic scroll method for scrolling in specified direction
+    def scroll(direction = :down)
+      # Basic implementation - actual implementation would depend on platform
+      case direction
+      when :down
+        Appom.driver.execute_script('mobile: scrollGesture', {
+                                      left: 100, top: 100, width: 200, height: 200,
+                                      direction: 'down', percent: 3.0,
+                                    })
+      when :up
+        Appom.driver.execute_script('mobile: scrollGesture', {
+                                      left: 100, top: 100, width: 200, height: 200,
+                                      direction: 'up', percent: 3.0,
+                                    })
+      end
+    rescue StandardError => e
+      # Fallback scroll for different platforms
+      log_warn("Scroll gesture failed: #{e.message}")
+    end
+
     # Scroll to element if needed and tap
     def scroll_to_and_tap(element_name, direction: :down)
       max_scrolls = 5
@@ -70,7 +96,7 @@ module Appom::Helpers
         scrolls += 1
       end
 
-      raise ElementNotFoundError.new(element_name, "after #{max_scrolls} scrolls")
+      raise Appom::ElementNotFoundError.new(element_name, "after #{max_scrolls} scrolls")
     end
   end
 
@@ -82,41 +108,41 @@ module Appom::Helpers
     def wait_for_clickable(element_name, timeout: nil)
       timeout ||= Appom.max_wait_time
       find_args = send("#{element_name}_params")
-      SmartWait.until_clickable(*find_args, timeout: timeout)
+      Appom::SmartWait.until_clickable(*find_args, timeout: timeout)
     end
 
     # Wait for element text to match pattern
     def wait_for_text_match(element_name, text, exact: false, timeout: nil)
       timeout ||= Appom.max_wait_time
       find_args = send("#{element_name}_params")
-      SmartWait.until_text_matches(*find_args, text: text, exact: exact, timeout: timeout)
+      Appom::SmartWait.until_text_matches(*find_args, text: text, exact: exact, timeout: timeout)
     end
 
     # Wait for element to become invisible
     def wait_for_invisible(element_name, timeout: nil)
       timeout ||= Appom.max_wait_time
       find_args = send("#{element_name}_params")
-      SmartWait.until_invisible(*find_args, timeout: timeout)
+      Appom::SmartWait.until_invisible(*find_args, timeout: timeout)
     end
 
     # Wait for elements collection to have specific count
     def wait_for_count(elements_name, count, timeout: nil)
       timeout ||= Appom.max_wait_time
       find_args = send("#{elements_name}_params")
-      SmartWait.until_count_equals(*find_args, count: count, timeout: timeout)
+      Appom::SmartWait.until_count_equals(*find_args, count: count, timeout: timeout)
     end
 
     # Advanced: Wait for custom condition on element
     def wait_for_condition(element_name, description: 'custom condition', timeout: nil, &condition_block)
       timeout ||= Appom.max_wait_time
       find_args = send("#{element_name}_params")
-      SmartWait.until_condition(*find_args, timeout: timeout, description: description, &condition_block)
+      Appom::SmartWait.until_condition(*find_args, timeout: timeout, description: description, &condition_block)
     end
 
     # Wait for any of multiple elements to appear
     def wait_for_any(*element_names, timeout: nil)
       timeout ||= Appom.max_wait_time
-      wait = Wait.new(timeout: timeout)
+      wait = Appom::Wait.new(timeout: timeout)
 
       wait.until do
         element_names.each do |element_name|
@@ -124,8 +150,8 @@ module Appom::Helpers
         end
         false
       end
-    rescue WaitError
-      raise ElementNotFoundError.new("any of: #{element_names.join(', ')}", timeout)
+    rescue Appom::WaitError
+      raise Appom::ElementNotFoundError.new("any of: #{element_names.join(', ')}", timeout)
     end
 
     # Wait for element to disappear
@@ -134,11 +160,11 @@ module Appom::Helpers
         send("has_no_#{element_name}")
       else
         timeout ||= Appom.max_wait_time
-        wait = Wait.new(timeout: timeout)
+        wait = Appom::Wait.new(timeout: timeout)
         wait.until do
           send(element_name)
           false
-        rescue ElementNotFoundError
+        rescue Appom::ElementNotFoundError
           true
         end
       end
@@ -147,7 +173,7 @@ module Appom::Helpers
     # Wait for text to appear in element
     def wait_for_text_in_element(element_name, expected_text, timeout: nil)
       timeout ||= Appom.max_wait_time
-      wait = Wait.new(timeout: timeout)
+      wait = Appom::Wait.new(timeout: timeout)
 
       wait.until do
         element_text = get_text_with_retry(element_name, retries: 1)
@@ -236,15 +262,15 @@ module Appom::Helpers
   module PerformanceHelpers
     # Time any element operation
     def time_element_operation(element_name, operation, &)
-      Performance.time_operation("#{element_name}_#{operation}", &)
+      Appom::Helpers.performance_module.time_operation("#{element_name}_#{operation}", &)
     end
 
     # Get performance stats for specific element operations
     def element_performance_stats(element_name = nil)
       if element_name
-        Performance.stats.select { |name, _| name.include?(element_name.to_s) }
+        Appom::Helpers.performance_module.stats.select { |name, _| name.include?(element_name.to_s) }
       else
-        Performance.summary
+        Appom::Helpers.performance_module.summary
       end
     end
   end

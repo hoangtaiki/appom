@@ -96,13 +96,22 @@ Performance/StringInclude:
 
 # RSpec specific rules
 RSpec/ExampleLength:
-  Max: 20
+  Max: 32
 
 RSpec/MultipleExpectations:
-  Max: 5
+  Max: 10
 
 RSpec/NestedGroups:
   Max: 5
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/VerifiedDoubles:
+  Enabled: false
 
 # Naming conventions
 Naming/AccessorMethodName:

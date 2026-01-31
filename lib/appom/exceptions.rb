@@ -23,9 +23,13 @@ module Appom
   # Raised when an element was defined without proper arguments
   class InvalidElementError < ElementError
     def initialize(element_name = nil)
-      message = 'Element'
-      message += " '#{element_name}'" if element_name
-      message += ' was defined without proper selector arguments'
+      if element_name.nil?
+        message = 'You should provide search arguments in element creation'
+      else
+        message = 'Element'
+        message += " '#{element_name}'" if element_name
+        message += ' was defined without proper selector arguments'
+      end
       super(message)
     end
   end
@@ -53,11 +57,12 @@ module Appom
   class WaitError < AppomError
     attr_reader :condition, :timeout
 
-    def initialize(condition, timeout)
+    def initialize(condition = 'unknown condition', timeout = nil)
       @condition = condition
       @timeout = timeout
-      super("Wait condition '#{condition}' not met within #{timeout}s",
-            { condition: condition, timeout: timeout })
+      message = "Wait condition '#{condition}' not met"
+      message += " within #{timeout}s" if timeout
+      super(message, { condition: condition, timeout: timeout })
     end
   end
 
@@ -115,6 +120,13 @@ module Appom
   # Timeout and waiting errors
   class TimeoutError < AppomError
     def initialize(message = 'Operation timed out')
+      super
+    end
+  end
+
+  # Argument validation errors
+  class ArgumentError < AppomError
+    def initialize(message)
       super
     end
   end

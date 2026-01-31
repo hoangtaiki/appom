@@ -140,7 +140,7 @@ module Appom::ElementFinder
         result = _all(*find_args)
         unless result.empty?
           message = "Still found #{result.size} element#{'s' if result.size > 1}"
-          raise ElementError.new(message, { elements_found: result.size, selector: find_args.join(', ') })
+          raise Appom::ElementError.new(message, { elements_found: result.size, selector: find_args.join(', ') })
         end
         return true
       end
@@ -153,7 +153,7 @@ module Appom::ElementFinder
     # Flatten argument array first if we are in case array inside array
     args = args.flatten
 
-    raise InvalidElementError, 'You should provide search arguments in element creation' if args.empty?
+    raise Appom::InvalidElementError.new if args.empty?
 
     # Get last key and check if it contain 'text' key
     text = nil

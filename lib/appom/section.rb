@@ -18,7 +18,9 @@ class Appom::Section
   end
 
   def page
-    root_element || super
+    return root_element if root_element
+
+    super
   end
 
   def parent_page

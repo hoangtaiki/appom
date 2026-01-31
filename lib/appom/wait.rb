@@ -28,6 +28,7 @@ class Appom::Wait
   #   @return [Numeric] The timeout value in seconds
   # @!attribute [r] interval
   #   @return [Numeric] The interval between retries in seconds
+  attr_reader :timeout, :interval
 
   # Create a new Wait instance
   #

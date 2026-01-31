@@ -22,15 +22,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'cucumber', '~> 9.0'
   spec.add_dependency 'selenium-webdriver', '>= 4.0'
 
-  # Development dependencies
-  spec.add_development_dependency 'mini_magick', '~> 4.12' # For visual testing
-  spec.add_development_dependency 'rake', '~> 13.0'
-  spec.add_development_dependency 'rspec', '~> 3.12'
-  spec.add_development_dependency 'rubocop', '~> 1.84'
-  spec.add_development_dependency 'rubocop-performance', '~> 1.23'
-  spec.add_development_dependency 'rubocop-rspec', '~> 3.2'
-  spec.add_development_dependency 'simplecov', '~> 0.22'
-  spec.add_development_dependency 'webmock', '~> 3.19'
-  spec.add_development_dependency 'yard', '~> 0.9'
+  # Development dependencies are now specified in the Gemfile.
   spec.metadata['rubygems_mfa_required'] = 'true'
 end

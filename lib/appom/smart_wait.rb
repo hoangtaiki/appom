@@ -100,6 +100,50 @@ module Appom::SmartWait
           false
         end
       end
+
+      # Condition for clickable element (used by factory methods)
+      def clickable(element)
+        lambda do
+          return element.displayed? && element.enabled? if element
+
+          # For factory method usage without element instance
+          false
+        rescue StandardError
+          false
+        end
+      end
+
+      # Condition for text matching (used by factory methods)
+      def text_matches(expected_text, exact: false)
+        lambda do |element|
+          actual_text = element.text
+          if exact
+            actual_text == expected_text.to_s
+          else
+            actual_text.include?(expected_text.to_s)
+          end
+        rescue StandardError
+          false
+        end
+      end
+
+      # Condition for invisible element (used by factory methods)
+      def invisible
+        lambda do |element|
+          !element.displayed?
+        rescue StandardError
+          true
+        end
+      end
+
+      # Condition for element count (used by factory methods)
+      def count_equals(expected_count)
+        lambda do |elements|
+          elements.length == expected_count
+        rescue StandardError
+          false
+        end
+      end
     end
   end
 
@@ -117,7 +161,7 @@ module Appom::SmartWait
     # Wait for element with specific condition
     def for_element(*find_args, &condition_block)
       condition = condition_block || @condition
-      raise ArgumentError, 'No condition provided' unless condition
+      raise Appom::ArgumentError, 'No condition provided' unless condition
 
       log_wait_start(@condition_description, @timeout)
       start_time = Time.now
@@ -134,10 +178,10 @@ module Appom::SmartWait
         # Continue waiting for condition even if element not found initially
         false
       end
-    rescue WaitError
+    rescue Appom::WaitError
       duration = Time.now - start_time
       log_wait_end(@condition_description, duration.round(3), false)
-      raise ElementNotFoundError.new(
+      raise Appom::ElementNotFoundError.new(
         "#{find_args.join(', ')} with condition: #{@condition_description}", @timeout,
       )
     end
@@ -145,7 +189,7 @@ module Appom::SmartWait
     # Wait for elements collection with condition
     def for_elements(*find_args, &condition_block)
       condition = condition_block || @condition
-      raise ArgumentError, 'No condition provided' unless condition
+      raise Appom::ArgumentError, 'No condition provided' unless condition
 
       log_wait_start("#{@condition_description} (collection)", @timeout)
       start_time = Time.now
@@ -161,10 +205,10 @@ module Appom::SmartWait
       rescue StandardError
         false
       end
-    rescue WaitError
+    rescue Appom::WaitError
       duration = Time.now - start_time
       log_wait_end("#{@condition_description} (collection)", duration.round(3), false)
-      raise ElementNotFoundError.new(
+      raise Appom::ElementNotFoundError.new(
         "#{find_args.join(', ')} collection with condition: #{@condition_description}", @timeout,
       )
     end
@@ -189,13 +233,13 @@ module Appom::SmartWait
         end
         false
       end
-    rescue WaitError
+    rescue Appom::WaitError
       duration = Time.now - start_time
       log_wait_end('any condition', duration.round(3), false)
       descriptions = conditions_with_elements.map.with_index do |(find_args, _), i|
         "#{i + 1}: #{find_args.join(', ')}"
       end
-      raise ElementNotFoundError.new("any of: #{descriptions.join('; ')}", @timeout)
+      raise Appom::ElementNotFoundError.new("any of: #{descriptions.join('; ')}", @timeout)
     end
 
     # Wait until condition becomes true
@@ -288,7 +332,14 @@ module Appom::SmartWait
     end
 
     def until_with_condition
-      sleep 0.1 until yield
+      timeout = @timeout || 5
+      start_time = Time.now
+      loop do
+        return true if yield
+        raise Appom::WaitError, 'Timeout waiting for condition' if (Time.now - start_time) > timeout
+
+        sleep 0.1
+      end
     end
 
     def _find_element(*find_args)

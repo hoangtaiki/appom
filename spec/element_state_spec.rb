@@ -9,11 +9,11 @@ RSpec.describe Appom::ElementState do
   before do
     # Mock common element methods
     allow(mock_element).to receive(:attribute) do |attr|
-      case attr
-      when :id then 'test_button'
-      when :class then 'btn btn-primary'
-      when :name then 'submit'
-      end
+      {
+        id: 'test_button',
+        class: 'btn btn-primary',
+        name: 'submit',
+      }[attr]
     end
     allow(mock_element).to receive_messages(displayed?: true, enabled?: true, selected?: false, text: 'Button Text', location: { x: 100, y: 200 }, size: { width: 80, height: 30 })
   end

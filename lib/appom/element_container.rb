@@ -13,7 +13,7 @@ module Appom::ElementContainer
   def raise_if_block(obj, name, has_block, type)
     return unless has_block
 
-    raise UnsupportedBlockError.new(name, "#{obj.class}##{type}")
+    raise Appom::UnsupportedBlockError.new(name, "#{obj.class}##{type}")
   end
 
   ##
@@ -170,7 +170,7 @@ module Appom::ElementContainer
     # Define method to notify that we can't find item without args
     def create_error_method(name)
       define_method(name) do
-        raise InvalidElementError, name
+        raise Appom::InvalidElementError, name
       end
     end
 
@@ -302,7 +302,7 @@ module Appom::ElementContainer
       klass = Class.new(klass || Appom::Section, &) if block_given?
 
       unless klass
-        raise InvalidSectionError,
+        raise Appom::InvalidSectionError,
               'You should provide descendant of Appom::Section class or/and a block as the second argument.'
       end
 
@@ -314,8 +314,8 @@ module Appom::ElementContainer
     #
     def deduce_search_arguments(section_class, args)
       extract_search_arguments(args) ||
-        extract_search_arguments(section_class.default_search_arguments) ||
-        raise(InvalidSectionError,
+        extract_search_arguments(section_class.respond_to?(:default_search_arguments) ? section_class.default_search_arguments : nil) ||
+        raise(Appom::InvalidSectionError,
               'You should provide search arguments in section creation or set_default_search_arguments within section class',)
     end
 

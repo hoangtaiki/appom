@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 # SimpleCov disabled for testing
-# require 'simplecov'
-# SimpleCov.start do
-#   add_filter '/spec/'
-#   add_filter '/vendor/'
-#   coverage_dir 'coverage'
-#   minimum_coverage 80
-# end
+require 'simplecov'
+SimpleCov.start do
+  add_filter '/spec/'
+  add_filter '/vendor/'
+  coverage_dir 'coverage'
+  minimum_coverage 80
+end
 
 require 'bundler/setup'
 require 'webmock/rspec'
