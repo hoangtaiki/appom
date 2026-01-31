@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
+# Retry functionality for Appom automation framework
+# Provides exponential backoff retry logic for flaky operations
 module Appom::Retry
   # Default retry configuration
   DEFAULT_RETRY_COUNT = 3
   DEFAULT_RETRY_DELAY = 0.5
   DEFAULT_BACKOFF_MULTIPLIER = 1.5
 
+  # Configuration class for retry operations
   class RetryConfig
     attr_accessor :max_attempts, :base_delay, :backoff_multiplier, :max_delay,
                   :retry_on_exceptions, :retry_if, :on_retry
@@ -87,9 +90,7 @@ module Appom::Retry
         text = element.text
 
         # Validate text if validation block provided
-        if retry_options[:validate_text] && !retry_options[:validate_text].call(text)
-          raise Appom::ElementStateError.new(element_name, 'valid text', text)
-        end
+        raise Appom::ElementStateError.new(element_name, 'valid text', text) if retry_options[:validate_text] && !retry_options[:validate_text].call(text)
 
         text
       end

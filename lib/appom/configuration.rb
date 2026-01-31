@@ -4,6 +4,8 @@ require 'yaml'
 require 'erb'
 require 'json'
 
+# Configuration management for Appom automation framework
+# Handles loading and parsing of YAML configuration files with environment support
 module Appom::Configuration
   # Configuration management with environment-specific settings
   class Config
@@ -92,7 +94,7 @@ module Appom::Configuration
     #
     # @example Validate current configuration
     #   config.validate!
-    def validate!
+    def validate! # rubocop:disable Naming/PredicateMethod
       schema = ConfigSchema.new
       errors = schema.validate(@data)
 

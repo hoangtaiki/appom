@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Element state tracking for Appom automation framework
+# Tracks element state changes and provides monitoring capabilities
 module Appom::ElementState
   # Tracks element states and changes over time
   class Tracker
@@ -38,7 +40,7 @@ module Appom::ElementState
     end
 
     # Update element state and detect changes
-    def update_element_state(element_id)
+    def update_element_state(element_id) # rubocop:disable Metrics/AbcSize
       return unless @tracking_enabled
 
       tracked = @tracked_elements[element_id]
@@ -367,6 +369,7 @@ module Appom::ElementState
       base.extend(ClassMethods)
     end
 
+    # Class methods for element state tracking
     module ClassMethods
       def track_state_changes
         @state_tracking_enabled = true

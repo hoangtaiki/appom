@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Performance monitoring for Appom automation framework
+# Tracks and analyzes performance metrics for test execution
 module Appom::Performance
   # Performance monitoring and metrics collection
   class Monitor
@@ -324,6 +326,7 @@ module Appom::Performance
       klass.extend(ClassMethods)
     end
 
+    # Class methods for method instrumentation
     module ClassMethods
       # Instrument methods for performance monitoring
       def instrument_method(method_name, operation_name: nil)

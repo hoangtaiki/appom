@@ -2,7 +2,10 @@
 
 require 'logger'
 
+# Main module for Appom automation framework
 module Appom
+  # Logging functionality for Appom automation framework
+  # Provides centralized logging with configurable levels and formatters
   module Logging
     class << self
       attr_writer :logger

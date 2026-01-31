@@ -2,6 +2,8 @@
 
 require 'appom/helpers'
 
+# Base page class for Appom automation framework
+# Provides common functionality for page objects
 class Appom::Page
   include Appium
   include Appom::ElementContainer

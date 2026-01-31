@@ -105,6 +105,7 @@ module Appom
   # Section-related errors
   class SectionError < AppomError; end
 
+  # Invalid section definition error
   class InvalidSectionError < SectionError
     def initialize(reason)
       super("Invalid section definition: #{reason}")

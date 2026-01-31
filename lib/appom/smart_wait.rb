@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Smart waiting functionality for Appom automation framework
+# Provides intelligent wait conditions and strategies
 module Appom::SmartWait
   DEFAULT_INTERVAL = 0.25
 
@@ -220,9 +222,7 @@ module Appom::SmartWait
     def wait_while(condition, timeout: @timeout, interval: @interval)
       start_time = Time.now
       while condition.call
-        if Time.now - start_time > timeout
-          raise Appom::TimeoutError, "Condition remained true for #{timeout}s"
-        end
+        raise Appom::TimeoutError, "Condition remained true for #{timeout}s" if Time.now - start_time > timeout
 
         sleep interval
       end

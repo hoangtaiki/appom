@@ -2,6 +2,8 @@
 
 require 'appom/helpers'
 
+# Base section class for Appom automation framework
+# Represents a section of a page with its own elements
 class Appom::Section
   include Appium
   include Appom::ElementContainer

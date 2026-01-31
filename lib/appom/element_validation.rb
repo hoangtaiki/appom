@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
+# Element validation module for Appom automation framework
+# Provides validation for element definitions and arguments
 module Appom::ElementValidation
+  # Boolean values for validation
+  BOOLEAN_VALUES = [true, false].freeze
+
   # Valid Appium locator strategies
   VALID_LOCATOR_STRATEGIES = [
     :accessibility_id,
@@ -68,13 +73,13 @@ module Appom::ElementValidation
       locator_strategy = flattened_args.first
       unless locator_strategy.is_a?(Symbol)
         raise Appom::ConfigurationError.new('locator_strategy', locator_strategy,
-                                     'First argument must be a symbol representing locator strategy',)
+                                            'First argument must be a symbol representing locator strategy',)
       end
 
       unless VALID_LOCATOR_STRATEGIES.include?(locator_strategy)
         valid_strategies = VALID_LOCATOR_STRATEGIES.map(&:to_s).join(', ')
         raise Appom::ConfigurationError.new('locator_strategy', locator_strategy,
-                                     "Invalid locator strategy. Valid strategies: #{valid_strategies}",)
+                                            "Invalid locator strategy. Valid strategies: #{valid_strategies}",)
       end
 
       # Second argument should be the locator value (string)
@@ -82,16 +87,16 @@ module Appom::ElementValidation
         locator_value = flattened_args[1]
         unless locator_value.is_a?(String) || locator_value.is_a?(Hash)
           raise Appom::ConfigurationError.new('locator_value', locator_value,
-                                       'Locator value must be a string or hash',)
+                                              'Locator value must be a string or hash',)
         end
 
         if locator_value.is_a?(String) && locator_value.empty?
           raise Appom::ConfigurationError.new('locator_value', locator_value,
-                                       'Locator value cannot be empty',)
+                                              'Locator value cannot be empty',)
         end
       else
         raise Appom::ConfigurationError.new('find_arguments', find_args,
-                                     'Missing locator value. Expected format: :strategy, "value"',)
+                                            'Missing locator value. Expected format: :strategy, "value"',)
       end
 
       # Validate optional hash arguments
@@ -107,20 +112,16 @@ module Appom::ElementValidation
         unless valid_options.include?(key)
           valid_keys = valid_options.map(&:to_s).join(', ')
           raise Appom::ConfigurationError.new('element_option', key,
-                                       "Invalid option. Valid options: #{valid_keys}",)
+                                              "Invalid option. Valid options: #{valid_keys}",)
         end
 
         case key
         when :text
           raise Appom::ConfigurationError.new('text_option', value, 'Text option must be a string') unless value.is_a?(String)
         when :visible, :enabled
-          unless [true, false].include?(value)
-            raise Appom::ConfigurationError.new("#{key}_option", value, "#{key.capitalize} option must be true or false")
-          end
+          raise Appom::ConfigurationError.new("#{key}_option", value, "#{key.capitalize} option must be true or false") unless BOOLEAN_VALUES.include?(value)
         when :timeout
-          unless value.is_a?(Numeric) && value.positive?
-            raise Appom::ConfigurationError.new('timeout_option', value, 'Timeout must be a positive number')
-          end
+          raise Appom::ConfigurationError.new('timeout_option', value, 'Timeout must be a positive number') unless value.is_a?(Numeric) && value.positive?
         end
       end
     end
@@ -131,7 +132,7 @@ module Appom::ElementValidation
       return if klass.ancestors.include?(Appom::Section)
 
       raise Appom::ConfigurationError.new('section_class', klass,
-                                   'Section class must inherit from Appom::Section',)
+                                          'Section class must inherit from Appom::Section',)
     end
   end
 end

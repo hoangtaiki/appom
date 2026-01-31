@@ -2,6 +2,8 @@
 
 require 'digest'
 
+# Element caching system for Appom automation framework
+# Provides intelligent element caching with TTL and LRU eviction policies
 module Appom::ElementCache
   # Element caching to improve performance for frequently accessed elements
   class Cache
@@ -26,7 +28,7 @@ module Appom::ElementCache
     end
 
     # Get element from cache by key
-    def get(cache_key)
+    def get(cache_key) # rubocop:disable Metrics/AbcSize
       unless @cache.key?(cache_key)
         @stats[:misses] += 1
         return nil
@@ -96,7 +98,7 @@ module Appom::ElementCache
     end
 
     # Invalidate specific element
-    def invalidate(*find_args)
+    def invalidate(*find_args) # rubocop:disable Naming/PredicateMethod
       cache_key = generate_key(find_args)
       if @cache.delete(cache_key)
         @access_times.delete(cache_key)
@@ -198,7 +200,7 @@ module Appom::ElementCache
       log_debug('Evicted LRU element from cache')
     end
 
-    def cleanup_expired
+    def cleanup_expired # rubocop:disable Metrics/AbcSize
       current_time = Time.now
       expired_keys = []
 
@@ -270,7 +272,7 @@ module Appom::ElementCache
 
     public
 
-    def find_elements(strategy, locator, use_cache: true)
+    def find_elements(strategy, locator, use_cache: true) # rubocop:disable Metrics/CyclomaticComplexity
       # If original method doesn't exist, delegate to the page/driver
       return page.find_elements(strategy, locator) unless respond_to?(:original_find_elements)
 

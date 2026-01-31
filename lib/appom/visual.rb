@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Visual testing functionality for Appom automation framework
+# Provides visual regression testing and screenshot comparison
 module Appom::Visual
   # Visual testing and comparison utilities
   class TestHelpers
@@ -272,9 +274,7 @@ module Appom::Visual
           end
 
           # Clean up old screenshot
-          if File.exist?(previous_screenshot) && previous_screenshot.include?('stability_check')
-            File.delete(previous_screenshot)
-          end
+          File.delete(previous_screenshot) if File.exist?(previous_screenshot) && previous_screenshot.include?('stability_check')
         end
 
         previous_screenshot = current_screenshot
@@ -513,6 +513,7 @@ module Appom::Visual
       base.extend(ClassMethods)
     end
 
+    # Class methods for visual testing DSL
     module ClassMethods
       def visual_test_helper
         @visual_test_helper ||= TestHelpers.new

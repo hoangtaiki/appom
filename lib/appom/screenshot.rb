@@ -3,6 +3,8 @@
 require 'fileutils'
 require 'base64'
 
+# Screenshot functionality for Appom automation framework
+# Provides screenshot capture, management, and comparison utilities
 module Appom::Screenshot
   # Enhanced screenshot utilities with automatic management
   class ScreenshotManager

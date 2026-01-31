@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Element container module for Appom automation framework
+# Provides DSL methods for defining page elements, sections, and element collections
 module Appom::ElementContainer
   include Appom::Logging
 
@@ -26,6 +28,7 @@ module Appom::ElementContainer
     [*find_args, *runtime_args]
   end
 
+  # Class methods for defining page elements and sections
   module ClassMethods
     attr_reader :mapped_items
 

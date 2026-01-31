@@ -2,6 +2,8 @@
 
 require 'appom/retry'
 
+# Helper utilities for Appom automation framework
+# Provides common interaction patterns and utility methods
 module Appom::Helpers
   # Common element interaction patterns
   module ElementHelpers
@@ -35,7 +37,7 @@ module Appom::Helpers
     end
 
     # Wait for element to be visible and tap
-    def wait_and_tap(element_name, timeout: nil)
+    def wait_and_tap(element_name, timeout: nil) # rubocop:disable Lint/UnusedMethodArgument
       Performance.time_operation("wait_and_tap_#{element_name}") do
         send("has_#{element_name}") if respond_to?("has_#{element_name}")
         send(element_name).tap
@@ -250,9 +252,8 @@ module Appom::Helpers
   # Phase 2 Visual testing helpers
   module VisualHelpers
     # Take screenshot with element highlighted
-    def screenshot_with_highlight(element_name, filename: nil)
+    def screenshot_with_highlight(element_name, filename: nil) # rubocop:disable Lint/UnusedMethodArgument
       element = send(element_name)
-      filename ||= "#{element_name}_highlighted_#{Time.now.strftime('%Y%m%d_%H%M%S')}"
       Visual.test_helpers.highlight_element(element)
     end
 

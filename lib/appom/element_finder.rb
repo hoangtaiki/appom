@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Element finding functionality for Appom automation framework
+# Handles element location with various strategies and options
 module Appom::ElementFinder
   include Appom::Logging
 
@@ -12,7 +14,7 @@ module Appom::ElementFinder
   end
 
   # Find an element
-  def _find(*find_args)
+  def _find(*find_args) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     args, text, visible = deduce_element_args(find_args)
     wait = Appom::Wait.new(timeout: Appom.max_wait_time)
 
@@ -55,7 +57,7 @@ module Appom::ElementFinder
   end
 
   # Find elements
-  def _all(*find_args)
+  def _all(*find_args) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     args, text, visible = deduce_element_args(find_args)
     elements = page.find_elements(*args)
     els = []
@@ -76,7 +78,7 @@ module Appom::ElementFinder
 
   # Check page has or has not element with find_args
   # If page has element return TRUE else return FALSE
-  def _check_has_element(*find_args)
+  def _check_has_element(*find_args) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     args, text, visible = deduce_element_args(find_args)
     elements = page.find_elements(*args)
 
@@ -113,7 +115,7 @@ module Appom::ElementFinder
 
   # Function is used to check
   # Note: Function WILL NOT RETURN ELEMENT
-  def wait_until(type, *find_args)
+  def wait_until(type, *find_args) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
     wait = Appom::Wait.new(timeout: Appom.max_wait_time)
     wait.until do
       case type
