@@ -1,3 +1,4 @@
 module Appom
-  VERSION = '1.4.0'.freeze
+  # Current version of the Appom gem
+  VERSION = '2.0.0'.freeze
 end

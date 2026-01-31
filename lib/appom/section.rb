@@ -1,8 +1,11 @@
+require 'appom/helpers'
+
 module Appom
   class Section
     include Appium
     include ElementContainer
     include ElementFinder
+    include Helpers
 
     attr_reader :root_element, :parent
 

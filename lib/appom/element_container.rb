@@ -1,5 +1,7 @@
 module Appom
   module ElementContainer
+    include Logging
+    
     def self.included(klass)
       klass.extend ClassMethods
     end
@@ -8,10 +10,7 @@ module Appom
     def raise_if_block(obj, name, has_block, type)
       return unless has_block
 
-      puts "Type passed in: #{type}"
-      puts "#{obj.class}##{name} does not accept blocks"
-
-      raise Appom::UnsupportedBlockError
+      raise UnsupportedBlockError.new(name, "#{obj.class}##{type}")
     end
 
     ##
@@ -42,6 +41,8 @@ module Appom
       # Element doesn't support block so that will raise if pass a block when declare
       #
       def element(name, *find_args)
+        ElementValidation.validate_element_args(name, *find_args)
+        
         build_element(name, *find_args) do
           define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :element)
@@ -65,6 +66,8 @@ module Appom
       # Elements doesn't support block so that will raise if pass a block when declare
       #
       def elements(name, *find_args)
+        ElementValidation.validate_element_args(name, *find_args)
+        
         build_elements(name, *find_args) do
           define_method(name) do |*runtime_args, &block|
             raise_if_block(self, name, !block.nil?, :elements)
@@ -76,6 +79,8 @@ module Appom
       end
 
       def section(name, *args, &block)
+        ElementValidation.validate_section_args(name, *args)
+        
         section_class, find_args = extract_section_options(args, &block)
         build_element(name, *find_args) do
           define_method(name) do |*runtime_args, &block|
@@ -88,6 +93,8 @@ module Appom
       end
 
       def sections(name, *args, &block)
+        ElementValidation.validate_section_args(name, *args)
+        
         section_class, find_args = extract_section_options(args, &block)
         build_sections(section_class, name, *find_args) do
           define_method(name) do |*runtime_args, &block|
@@ -159,7 +166,7 @@ module Appom
       # Define method to notify that we can't find item without args
       def create_error_method(name)
         define_method(name) do
-          raise Appom::InvalidElementError
+          raise InvalidElementError.new(name)
         end
       end
 
@@ -291,7 +298,7 @@ module Appom
         klass = Class.new(klass || Appom::Section, &block) if block_given?
 
         unless klass
-          raise ArgumentError, 'You should provide descendant of Appom::Section class or/and a block as the second argument.'
+          raise InvalidSectionError, 'You should provide descendant of Appom::Section class or/and a block as the second argument.'
         end
         klass
       end
@@ -302,7 +309,7 @@ module Appom
       def deduce_search_arguments(section_class, args)
         extract_search_arguments(args) ||
           extract_search_arguments(section_class.default_search_arguments) ||
-          raise(ArgumentError, 'You should provide search arguments in section creation or set_default_search_arguments within section class')
+          raise(InvalidSectionError, 'You should provide search arguments in section creation or set_default_search_arguments within section class')
       end
 
       def extract_search_arguments(args)

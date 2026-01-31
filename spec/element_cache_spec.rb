@@ -1,0 +1,471 @@
+require 'spec_helper'
+
+RSpec.describe Appom::ElementCache do
+  let(:mock_element) { double('element', object_id: 12345) }
+  let(:cache) { Appom::ElementCache::Cache.new(max_size: 3, ttl: 1) }
+  
+  describe Appom::ElementCache::Cache do
+    describe '#initialize' do
+      it 'initializes with default values' do
+        default_cache = Appom::ElementCache::Cache.new
+        expect(default_cache.max_size).to eq(100)
+        expect(default_cache.ttl).to eq(300)
+        expect(default_cache.size).to eq(0)
+      end
+
+      it 'accepts custom configuration' do
+        expect(cache.max_size).to eq(3)
+        expect(cache.ttl).to eq(1)
+      end
+    end
+
+    describe '#store' do
+      it 'stores element with generated key' do
+        key = cache.store(:id, 'test_button', mock_element)
+        
+        expect(cache.size).to eq(1)
+        expect(cache.hit?(key)).to be true
+        expect(cache.statistics[:stores]).to eq(1)
+      end
+
+      it 'generates consistent keys for same locator' do
+        key1 = cache.store(:id, 'test_button', mock_element)
+        key2 = cache.store(:id, 'test_button', double('element2'))
+        
+        expect(key1).to eq(key2)
+        expect(cache.size).to eq(1) # Should overwrite
+      end
+
+      it 'generates different keys for different locators' do
+        key1 = cache.store(:id, 'button1', mock_element)
+        key2 = cache.store(:id, 'button2', mock_element)
+        
+        expect(key1).not_to eq(key2)
+        expect(cache.size).to eq(2)
+      end
+
+      it 'updates existing entries' do
+        key = cache.store(:id, 'test_button', mock_element)
+        new_element = double('new_element')
+        
+        cache.store(:id, 'test_button', new_element)
+        
+        expect(cache.size).to eq(1)
+        expect(cache.get(key)).to eq(new_element)
+      end
+    end
+
+    describe '#get' do
+      let(:key) { cache.store(:id, 'test_button', mock_element) }
+
+      it 'retrieves stored element' do
+        element = cache.get(key)
+        
+        expect(element).to eq(mock_element)
+        expect(cache.statistics[:hits]).to eq(1)
+      end
+
+      it 'returns nil for non-existent key' do
+        element = cache.get('nonexistent_key')
+        
+        expect(element).to be_nil
+        expect(cache.statistics[:misses]).to eq(1)
+      end
+
+      it 'moves accessed element to front (LRU)' do
+        key1 = cache.store(:id, 'button1', double('element1'))
+        key2 = cache.store(:id, 'button2', double('element2'))
+        key3 = cache.store(:id, 'button3', double('element3'))
+        
+        # Access first element
+        cache.get(key1)
+        
+        # Add fourth element, should evict second element (least recently used)
+        cache.store(:id, 'button4', double('element4'))
+        
+        expect(cache.hit?(key1)).to be true  # Recently accessed, should remain
+        expect(cache.hit?(key2)).to be false # Should be evicted
+        expect(cache.hit?(key3)).to be true  # Should remain
+      end
+    end
+
+    describe '#hit?' do
+      it 'returns true for cached elements' do
+        key = cache.store(:id, 'test_button', mock_element)
+        
+        expect(cache.hit?(key)).to be true
+      end
+
+      it 'returns false for non-cached elements' do
+        expect(cache.hit?('nonexistent_key')).to be false
+      end
+    end
+
+    describe 'LRU eviction' do
+      it 'evicts least recently used elements when max size reached' do
+        # Fill cache to max capacity
+        key1 = cache.store(:id, 'button1', double('element1'))
+        key2 = cache.store(:id, 'button2', double('element2'))
+        key3 = cache.store(:id, 'button3', double('element3'))
+        
+        expect(cache.size).to eq(3)
+        
+        # Add fourth element, should evict first
+        key4 = cache.store(:id, 'button4', double('element4'))
+        
+        expect(cache.size).to eq(3)
+        expect(cache.hit?(key1)).to be false # Evicted
+        expect(cache.hit?(key2)).to be true
+        expect(cache.hit?(key3)).to be true
+        expect(cache.hit?(key4)).to be true
+      end
+
+      it 'updates LRU order on access' do
+        key1 = cache.store(:id, 'button1', double('element1'))
+        key2 = cache.store(:id, 'button2', double('element2'))
+        key3 = cache.store(:id, 'button3', double('element3'))
+        
+        # Access first element to make it most recently used
+        cache.get(key1)
+        
+        # Add fourth element, should evict second element
+        cache.store(:id, 'button4', double('element4'))
+        
+        expect(cache.hit?(key1)).to be true  # Recently accessed
+        expect(cache.hit?(key2)).to be false # Should be evicted
+        expect(cache.hit?(key3)).to be true
+        expect(cache.size).to eq(3)
+      end
+    end
+
+    describe 'TTL expiration' do
+      it 'expires elements after TTL', :slow do
+        key = cache.store(:id, 'test_button', mock_element)
+        
+        expect(cache.hit?(key)).to be true
+        
+        sleep(1.1) # Wait for TTL to expire
+        
+        expect(cache.hit?(key)).to be false
+        expect(cache.get(key)).to be_nil
+      end
+
+      it 'updates TTL on access' do
+        key = cache.store(:id, 'test_button', mock_element)
+        
+        sleep(0.5)
+        cache.get(key) # Should refresh TTL
+        sleep(0.7)     # Total 1.2s, but accessed at 0.5s
+        
+        expect(cache.hit?(key)).to be true # Should still be valid
+      end
+
+      it 'cleans up expired entries' do
+        key1 = cache.store(:id, 'button1', double('element1'))
+        
+        sleep(1.1) # Let first element expire
+        
+        key2 = cache.store(:id, 'button2', double('element2'))
+        
+        # Cleanup should have removed expired element
+        expect(cache.size).to eq(1)
+        expect(cache.hit?(key1)).to be false
+        expect(cache.hit?(key2)).to be true
+      end
+    end
+
+    describe '#clear' do
+      it 'removes all cached elements' do
+        cache.store(:id, 'button1', double('element1'))
+        cache.store(:id, 'button2', double('element2'))
+        
+        expect(cache.size).to eq(2)
+        
+        cache.clear
+        
+        expect(cache.size).to eq(0)
+        expect(cache.statistics[:clears]).to eq(1)
+      end
+    end
+
+    describe '#statistics' do
+      it 'tracks comprehensive statistics' do
+        stats = cache.statistics
+        
+        expect(stats[:hits]).to eq(0)
+        expect(stats[:misses]).to eq(0)
+        expect(stats[:stores]).to eq(0)
+        expect(stats[:evictions]).to eq(0)
+        expect(stats[:expirations]).to eq(0)
+        expect(stats[:clears]).to eq(0)
+        expect(stats[:hit_rate]).to eq(0.0)
+      end
+
+      it 'calculates hit rate correctly' do
+        key = cache.store(:id, 'test_button', mock_element)
+        
+        cache.get(key)      # Hit
+        cache.get(key)      # Hit
+        cache.get('missing') # Miss
+        
+        stats = cache.statistics
+        expect(stats[:hits]).to eq(2)
+        expect(stats[:misses]).to eq(1)
+        expect(stats[:hit_rate]).to eq(66.67)
+      end
+
+      it 'tracks evictions' do
+        cache.store(:id, 'button1', double('element1'))
+        cache.store(:id, 'button2', double('element2'))
+        cache.store(:id, 'button3', double('element3'))
+        cache.store(:id, 'button4', double('element4')) # Should cause eviction
+        
+        expect(cache.statistics[:evictions]).to eq(1)
+      end
+    end
+
+    describe 'cache key generation' do
+      it 'generates consistent keys for same locator strategy and value' do
+        key1 = cache.generate_key(:id, 'test_button')
+        key2 = cache.generate_key(:id, 'test_button')
+        
+        expect(key1).to eq(key2)
+      end
+
+      it 'generates different keys for different strategies' do
+        key1 = cache.generate_key(:id, 'test_button')
+        key2 = cache.generate_key(:class, 'test_button')
+        
+        expect(key1).not_to eq(key2)
+      end
+
+      it 'generates different keys for different values' do
+        key1 = cache.generate_key(:id, 'button1')
+        key2 = cache.generate_key(:id, 'button2')
+        
+        expect(key1).not_to eq(key2)
+      end
+
+      it 'handles complex locator values' do
+        complex_value = { contains: 'text', index: 2 }
+        key = cache.generate_key(:xpath, complex_value)
+        
+        expect(key).to be_a(String)
+        expect(key.length).to eq(32) # MD5 hash length
+      end
+    end
+  end
+
+  describe Appom::ElementCache::CacheAwareFinder do
+    let(:test_class) do
+      Class.new do
+        include Appom::ElementCache::CacheAwareFinder
+        
+        def original_find_element(strategy, locator)
+          # Return a simple mock object
+          mock_element = Object.new
+          mock_element.define_singleton_method(:displayed?) { true }
+          mock_element.define_singleton_method(:enabled?) { true }
+          mock_element.define_singleton_method(:object_id) { "#{strategy}_#{locator}".hash }
+          mock_element
+        end
+        
+        def original_find_elements(strategy, locator)
+          # Return array of mock objects
+          elements = []
+          2.times do |i|
+            element = Object.new
+            element.define_singleton_method(:displayed?) { true }
+            element.define_singleton_method(:enabled?) { true }
+            element.define_singleton_method(:object_id) { "#{strategy}_#{locator}_#{i}".hash }
+            elements << element
+          end
+          elements
+        end
+      end
+    end
+
+    let(:finder) { test_class.new }
+
+    before do
+      Appom::ElementCache.reset_cache
+    end
+
+    describe '#find_element' do
+      it 'uses cache for repeated lookups' do
+        element1 = finder.find_element(:id, 'test_button')
+        element2 = finder.find_element(:id, 'test_button')
+        
+        expect(element2).to eq(element1) # Should return cached element
+        
+        cache_stats = Appom::ElementCache.cache_statistics
+        expect(cache_stats[:hits]).to eq(1)
+        expect(cache_stats[:stores]).to eq(1)
+      end
+
+      it 'calls original method on cache miss' do
+        expect(finder).to receive(:original_find_element).with(:id, 'new_button').and_call_original
+        
+        element = finder.find_element(:id, 'new_button')
+        expect(element).not_to be_nil
+      end
+
+      it 'caches found elements' do
+        element = finder.find_element(:class, 'button_class')
+        
+        cache_stats = Appom::ElementCache.cache_statistics
+        expect(cache_stats[:stores]).to eq(1)
+        
+        # Second call should hit cache
+        cached_element = finder.find_element(:class, 'button_class')
+        expect(cached_element).to eq(element)
+        
+        updated_stats = Appom::ElementCache.cache_statistics
+        expect(updated_stats[:hits]).to eq(1)
+      end
+
+      it 'handles exceptions gracefully' do
+        allow(finder).to receive(:original_find_element).and_raise(StandardError, 'Element not found')
+        
+        expect do
+          finder.find_element(:id, 'missing_element')
+        end.to raise_error(StandardError, 'Element not found')
+        
+        # Should not cache failed lookups
+        cache_stats = Appom::ElementCache.cache_statistics
+        expect(cache_stats[:stores]).to eq(0)
+      end
+    end
+
+    describe '#find_elements' do
+      it 'uses cache for repeated multiple element lookups' do
+        elements1 = finder.find_elements(:class, 'button')
+        elements2 = finder.find_elements(:class, 'button')
+        
+        expect(elements2).to eq(elements1)
+        
+        cache_stats = Appom::ElementCache.cache_statistics
+        expect(cache_stats[:hits]).to eq(1)
+      end
+
+      it 'caches arrays of elements' do
+        elements = finder.find_elements(:tag_name, 'button')
+        
+        expect(elements).to be_an(Array)
+        expect(elements.size).to eq(2)
+        
+        cache_stats = Appom::ElementCache.cache_statistics
+        expect(cache_stats[:stores]).to eq(1)
+      end
+    end
+
+    describe 'cache configuration' do
+      it 'allows disabling cache per call' do
+        allow(finder).to receive(:original_find_element).and_call_original
+        
+        # First call with cache
+        finder.find_element(:id, 'test_button')
+        
+        # Second call without cache
+        expect(finder).to receive(:original_find_element).with(:id, 'test_button')
+        finder.find_element(:id, 'test_button', use_cache: false)
+      end
+    end
+  end
+
+  describe 'Global ElementCache module' do
+    before { Appom::ElementCache.reset_cache }
+
+    describe '.cache_element' do
+      it 'stores element in global cache' do
+        key = Appom::ElementCache.cache_element(:id, 'global_button', mock_element)
+        
+        expect(Appom::ElementCache.get_cached_element(key)).to eq(mock_element)
+      end
+    end
+
+    describe '.get_cached_element' do
+      it 'retrieves element from global cache' do
+        key = Appom::ElementCache.cache_element(:id, 'global_button', mock_element)
+        element = Appom::ElementCache.get_cached_element(key)
+        
+        expect(element).to eq(mock_element)
+      end
+
+      it 'returns nil for non-existent elements' do
+        element = Appom::ElementCache.get_cached_element('nonexistent')
+        
+        expect(element).to be_nil
+      end
+    end
+
+    describe '.cache_hit?' do
+      it 'checks if element is cached' do
+        key = Appom::ElementCache.cache_element(:id, 'check_button', mock_element)
+        
+        expect(Appom::ElementCache.cache_hit?(key)).to be true
+        expect(Appom::ElementCache.cache_hit?('missing')).to be false
+      end
+    end
+
+    describe '.cache_statistics' do
+      it 'returns global cache statistics' do
+        Appom::ElementCache.cache_element(:id, 'stats_button', mock_element)
+        Appom::ElementCache.get_cached_element(Appom::ElementCache.cache.generate_key(:id, 'stats_button'))
+        
+        stats = Appom::ElementCache.cache_statistics
+        
+        expect(stats[:hits]).to eq(1)
+        expect(stats[:stores]).to eq(1)
+        expect(stats[:hit_rate]).to be > 0
+      end
+    end
+
+    describe '.clear_cache' do
+      it 'clears global cache' do
+        Appom::ElementCache.cache_element(:id, 'clear_test', mock_element)
+        
+        expect(Appom::ElementCache.cache.size).to eq(1)
+        
+        Appom::ElementCache.clear_cache
+        
+        expect(Appom::ElementCache.cache.size).to eq(0)
+      end
+    end
+
+    describe '.configure_cache' do
+      it 'allows cache configuration' do
+        Appom::ElementCache.configure_cache(max_size: 50, ttl: 600)
+        
+        expect(Appom::ElementCache.cache.max_size).to eq(50)
+        expect(Appom::ElementCache.cache.ttl).to eq(600)
+      end
+    end
+  end
+
+  describe 'thread safety' do
+    it 'handles concurrent access safely', :slow do
+      threads = []
+      elements = {}
+      
+      10.times do |i|
+        threads << Thread.new do
+          element = double("element_#{i}")
+          key = Appom::ElementCache.cache_element(:id, "button_#{i}", element)
+          elements[i] = { key: key, element: element }
+        end
+      end
+      
+      threads.each(&:join)
+      
+      # Verify all elements were cached
+      expect(Appom::ElementCache.cache.size).to eq(10)
+      
+      # Verify retrieval
+      elements.each do |i, data|
+        cached_element = Appom::ElementCache.get_cached_element(data[:key])
+        expect(cached_element).to eq(data[:element])
+      end
+    end
+  end
+end
