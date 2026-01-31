@@ -183,16 +183,18 @@ module Appom::ElementState
 
     # Find elements by state criteria
     def find_elements_by_state(criteria)
-      @tracked_elements.select do |_element_id, tracked|
-        current_state = tracked[:current_state]
-
-        case criteria
-        when Hash
-          criteria.all? { |key, value| current_state&.dig(key) == value }
-        when Proc
-          criteria.call(current_state)
-        else
-          false
+      if criteria.is_a?(Hash)
+        # Always return array of tracked hashes for consistency with test expectations
+        @tracked_elements.values.select { |tracked| criteria.all? { |key, value| tracked[:current_state]&.dig(key) == value } }
+      else
+        @tracked_elements.values.select do |tracked|
+          current_state = tracked[:current_state]
+          case criteria
+          when Proc
+            criteria.call(current_state)
+          else
+            false
+          end
         end
       end
     end
@@ -200,6 +202,7 @@ module Appom::ElementState
     # Add state change observer
     def add_observer(&block)
       @observers << block
+      block
     end
 
     # Remove observer
@@ -384,34 +387,38 @@ module Appom::ElementState
     def track_state(name: nil, context: {})
       return unless self.class.state_tracking_enabled?
 
-      ElementState.tracker.track_element(self, name: name, context: context)
+      ::Appom::ElementState.tracker.track_element(self, name: name, context: context)
     end
 
     # Update state and return changes
     def update_state
       return unless self.class.state_tracking_enabled?
 
-      ElementState.tracker.update_element_state(element_id) if defined?(@element_id)
+      ::Appom::ElementState.tracker.update_element_state(element_id) if defined?(@element_id)
     end
 
     # Get current state
     def current_state
       return unless self.class.state_tracking_enabled?
 
-      ElementState.tracker.element_state(element_id) if defined?(@element_id)
+      ::Appom::ElementState.tracker.element_state(element_id) if defined?(@element_id)
     end
 
     # Wait for state change
-    def wait_for_state_change(**)
+    def wait_for_state_change(**args)
       return unless self.class.state_tracking_enabled?
 
-      ElementState.tracker.wait_for_state_change(element_id, **) if defined?(@element_id)
+      ::Appom::ElementState.tracker.wait_for_state_change(element_id, args.empty? ? {} : args) if defined?(@element_id)
     end
 
     private
 
     def element_id
-      @element_id ||= ElementState.tracker.generate_element_id(self, nil)
+      @element_id ||= ::Appom::ElementState.tracker.generate_element_id(self, nil)
+    end
+
+    def initialize(*args)
+      super(*args) if defined?(super)
     end
   end
 

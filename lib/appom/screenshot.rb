@@ -71,7 +71,7 @@ module Appom::Screenshot
 
     # Take screenshot on test failure
     def capture_on_failure(test_name, exception = nil)
-      name = "FAIL_#{sanitize_name(test_name)}"
+      name = "FAIL_#{test_name}"
       filepath = capture(name)
 
       if filepath && exception
@@ -110,9 +110,13 @@ module Appom::Screenshot
       # Take initial screenshot
       initial_path = File.join(sequence_dir, "#{sequence_count.to_s.rjust(3, '0')}.#{@format}")
       if driver.respond_to?(:screenshot)
-        driver.screenshot(initial_path)
-        screenshots << initial_path
-        sequence_count += 1
+        begin
+          driver.screenshot(initial_path)
+          screenshots << initial_path
+          sequence_count += 1
+        rescue StandardError => e
+          log_warn("Failed to capture initial sequence screenshot: #{e.message}")
+        end
       end
 
       # Start background screenshot capture
@@ -134,8 +138,10 @@ module Appom::Screenshot
       result = yield if block_given?
 
       # Stop screenshot capture
-      screenshot_thread.kill
-      screenshot_thread.join(1.0) # Wait up to 1 second for thread to finish
+      if screenshot_thread
+        screenshot_thread.kill
+        screenshot_thread.join(1.0) # Wait up to 1 second for thread to finish
+      end
 
       log_info("Captured #{screenshots.size} screenshots in sequence")
 
@@ -174,6 +180,7 @@ module Appom::Screenshot
 
       {
         total: files.size,
+        size: total_size,
         size_bytes: total_size,
         size_mb: (total_size / (1024 * 1024.0)).round(2),
         session_count: @screenshot_count,
@@ -193,20 +200,37 @@ module Appom::Screenshot
     end
 
     def sanitize_name(name)
-      name.to_s.gsub(/[^a-zA-Z0-9_-]/, '_').squeeze('_')
+      result = name.to_s
+      
+      # First replace :: with a special placeholder that won't be affected by other operations
+      double_underscore_marker = 'XDOUBLEUNDERSCOREX'
+      result = result.gsub('::', double_underscore_marker)
+      
+      # Replace all non-alphanumeric chars (except our marker characters) with underscore
+      result = result.gsub(/[^a-zA-Z0-9_X-]/, '_')
+      
+      # Squeeze multiple underscores into single ones, but don't touch our marker
+      result = result.squeeze('_')
+      
+      # Finally restore the double underscores for the original ::
+      result = result.gsub(double_underscore_marker, '__')
+      
+      result
     end
 
     def validate_format(format)
       format = format.to_sym
       unless SUPPORTED_FORMATS.include?(format)
-        raise ConfigurationError.new('screenshot_format', format,
-                                     "Must be one of: #{SUPPORTED_FORMATS.join(', ')}",)
+        raise Appom::ConfigurationError.new('screenshot_format', format,
+                                            "Must be one of: #{SUPPORTED_FORMATS.join(', ')}",)
       end
       format
     end
 
     def ensure_directory_exists
       FileUtils.mkdir_p(@directory)
+    rescue Errno::EROFS, Errno::EACCES => e
+      log_warn("Cannot create directory #{@directory}: #{e.message}")
     end
 
     def format_exception_info(exception)

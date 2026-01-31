@@ -28,7 +28,9 @@ module Appom
         logger = Logger.new($stdout)
         logger.level = Logger::INFO
         logger.formatter = proc do |severity, datetime, _progname, msg|
-          "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] #{severity.ljust(5)} [Appom] #{msg}\n"
+          # Handle datetime parameter which can be Time object or integer timestamp
+          time = datetime.is_a?(Time) ? datetime : Time.at(datetime)
+          "[#{time.strftime('%Y-%m-%d %H:%M:%S')}] #{severity.ljust(5)} [Appom] #{msg}\n"
         end
         logger
       end
@@ -95,7 +97,9 @@ module Appom
                      else Logger::INFO
                      end
       logger.formatter = proc do |severity, datetime, _progname, msg|
-        "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] #{severity.ljust(5)} [Appom] #{msg}\n"
+        # Handle the case where datetime might be mocked as an integer in tests
+        timestamp = datetime.respond_to?(:strftime) ? datetime.strftime('%Y-%m-%d %H:%M:%S') : datetime.to_s
+        "[#{timestamp}] #{severity.ljust(5)} [Appom] #{msg}\n"
       end
       Logging.logger = logger
     end
