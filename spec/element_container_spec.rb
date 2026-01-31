@@ -60,11 +60,10 @@ RSpec.describe Appom::ElementContainer do
   let(:page_instance) { test_page_class.new(mock_driver) }
   let(:mock_driver) { double('appium_driver') }
   let(:mock_element) { double('element', enabled?: true, displayed?: true) }
-  let(:mock_elements) { [mock_element, mock_element] }
 
   before do
     allow(mock_driver).to receive(:find_element).and_return(mock_element)
-    allow(mock_driver).to receive(:find_elements).and_return(mock_elements)
+    allow(mock_driver).to receive(:find_elements).and_return([mock_element, mock_element])
     Appom.driver = mock_driver
   end
 
@@ -200,7 +199,7 @@ RSpec.describe Appom::ElementContainer do
 
       it 'elements method returns found elements' do
         result = page_instance.menu_items
-        expect(result).to eq(mock_elements)
+        expect(result).to eq([mock_element, mock_element])
         expect(mock_driver).to have_received(:find_elements).with(:class_name, 'menu_item')
       end
 
@@ -374,10 +373,10 @@ RSpec.describe Appom::ElementContainer do
         end
 
         it 'waits until elements are found' do
-          allow(page_instance).to receive(:wait_until_get_not_empty).with(:class_name, 'item').and_return(mock_elements)
+          allow(page_instance).to receive(:wait_until_get_not_empty).with(:class_name, 'item').and_return([mock_element, mock_element])
 
           result = page_instance.get_all_list_items
-          expect(result).to eq(mock_elements)
+          expect(result).to eq([mock_element, mock_element])
         end
       end
 
@@ -387,7 +386,7 @@ RSpec.describe Appom::ElementContainer do
         end
 
         it 'waits until sections are found and returns section instances' do
-          allow(page_instance).to receive(:wait_until_get_not_empty).with(:class_name, 'panel').and_return(mock_elements)
+          allow(page_instance).to receive(:wait_until_get_not_empty).with(:class_name, 'panel').and_return([mock_element, mock_element])
 
           result = page_instance.get_all_panels
           expect(result).to be_an(Array)

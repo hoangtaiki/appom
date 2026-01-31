@@ -20,7 +20,7 @@ class Appom::Section
   def page
     return root_element if root_element
 
-    super
+    parent
   end
 
   def parent_page

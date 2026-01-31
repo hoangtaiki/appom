@@ -1,3 +1,7 @@
+# Helper to allow double inside class definitions
+def test_double(*, **)
+  RSpec::Mocks::Double.new(*, **)
+end
 # frozen_string_literal: true
 
 require 'spec_helper'
@@ -160,7 +164,7 @@ RSpec.describe Appom::Section do
         section :inner, inner_class, :class_name, 'inner'
 
         def _find(*_args)
-          RSpec::Mocks.configuration.mock_maker.instance_double('outer_element')
+          test_double('outer_element')
         end
       end
     end
@@ -305,18 +309,17 @@ RSpec.describe Appom::Section do
         # Mock finder methods
         def _find(*args)
           case args[1]
-          when 'name' then RSpec::Mocks.configuration.mock_maker.instance_double('name_field', send_keys: nil)
-          when 'email' then RSpec::Mocks.configuration.mock_maker.instance_double('email_field', send_keys: nil)
-          when 'submit' then RSpec::Mocks.configuration.mock_maker.instance_double('submit_button', tap: nil)
-          else RSpec::Mocks.configuration.mock_maker.instance_double('element')
+          when 'name' then test_double('name_field', send_keys: nil)
+          when 'email' then test_double('email_field', send_keys: nil)
+          when 'submit' then test_double('submit_button', tap: nil)
+          else test_double('element')
           end
         end
 
         def _all(*args)
           case args[1]
-          when 'error' then [RSpec::Mocks.configuration.mock_maker.instance_double('error_message', text: 'Error')]
-          else [RSpec::Mocks.configuration.mock_maker.instance_double('element')]
-          end
+          when 'error' then [test_double('error_message', text: 'Error')]
+          else [test_double('element')]
           end
         end
       end

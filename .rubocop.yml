@@ -113,6 +113,9 @@ RSpec/MessageSpies:
 RSpec/VerifiedDoubles:
   Enabled: false
 
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+
 # Naming conventions
 Naming/AccessorMethodName:
   Enabled: false
