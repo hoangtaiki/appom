@@ -7,6 +7,11 @@ module Appom::Visual
   class TestHelpers
     include Appom::Logging
 
+    # Log a warning message
+    def log_warning(message)
+      warn "[Appom::Visual][WARNING] #{message}"
+    end
+
     attr_reader :baseline_dir, :results_dir, :threshold
 
     def initialize(baseline_dir: 'visual_baselines', results_dir: 'visual_results', threshold: 0.01)

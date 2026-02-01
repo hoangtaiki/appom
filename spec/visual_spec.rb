@@ -20,6 +20,81 @@ RSpec.describe Appom::Visual do
   end
 
   describe Appom::Visual::TestHelpers do
+    describe 'error and fallback handling' do
+      let(:test_name) { 'error_test' }
+      let(:baseline_path) { File.join(test_helpers.baseline_dir, "#{test_name}.png") }
+      let(:current_path) { File.join(test_helpers.results_dir, "#{test_name}_current.png") }
+
+      before do
+        allow(test_helpers).to receive(:take_screenshot) do |path|
+          File.write(path, 'mock_content')
+          path
+        end
+      end
+
+      it 'returns error if current screenshot is not created' do
+        allow(test_helpers).to receive(:take_screenshot).and_return('nonexistent_path.png')
+        result = test_helpers.visual_regression_test(test_name)
+        expect(result[:error]).to eq('Failed to create current screenshot')
+        expect(result[:passed]).to be false
+      end
+
+      it 'returns error if baseline cannot be created' do
+        allow(FileUtils).to receive(:cp).and_raise(StandardError.new('copy failed'))
+        File.write(current_path, 'mock_content')
+        result = test_helpers.visual_regression_test(test_name)
+        expect(result[:error]).to include('Failed to create baseline: copy failed')
+        expect(result[:passed]).to be false
+      end
+
+      it 'returns error if element screenshot is not created' do
+        allow(test_helpers).to receive(:take_element_screenshot).and_return('nonexistent_element.png')
+        result = test_helpers.compare_element_visuals(mock_element, 'no_screenshot')
+        expect(result[:error]).to eq('Failed to create element screenshot')
+        expect(result[:passed]).to be false
+      end
+
+      it 'returns error if element baseline cannot be created' do
+        allow(test_helpers).to receive(:take_element_screenshot) do |_element|
+          path = File.join(test_helpers.results_dir, 'element_screenshot.png')
+          File.write(path, 'mock_content')
+          path
+        end
+        allow(FileUtils).to receive(:cp).and_raise(StandardError.new('element copy failed'))
+        result = test_helpers.compare_element_visuals(mock_element, 'fail_baseline')
+        expect(result[:error]).to include('Failed to create baseline: element copy failed')
+        expect(result[:passed]).to be false
+      end
+
+      it 'falls back to file copy if MiniMagick is not available in annotate_screenshot' do
+        allow(test_helpers).to receive(:annotate_screenshot).and_call_original
+        allow(test_helpers).to receive(:require).with('mini_magick').and_raise(LoadError)
+        src = File.join(test_helpers.results_dir, 'src.png')
+        File.write(src, 'img')
+        dest = File.join(test_helpers.results_dir, 'dest.png')
+        result = test_helpers.send(:annotate_screenshot, src, dest, [{ type: :rectangle, x: 0, y: 0, width: 1, height: 1 }])
+        expect(File.exist?(dest)).to be true
+        expect(result).to eq(dest)
+      end
+
+      it 'falls back to file size comparison if MiniMagick is not available in compare_images' do
+        img1 = File.join(test_helpers.results_dir, 'img1.png')
+        img2 = File.join(test_helpers.results_dir, 'img2.png')
+        File.write(img1, 'abc')
+        File.write(img2, 'abcd')
+        allow(test_helpers).to receive(:require).with('mini_magick').and_raise(LoadError)
+        result = test_helpers.send(:compare_images, img1, img2)
+        expect(result[:method]).to eq('file_size_comparison')
+        expect(result[:similarity]).to be < 1.0
+      end
+
+      it 'returns error if both image files do not exist in compare_images' do
+        result = test_helpers.send(:compare_images, 'noimg1.png', 'noimg2.png')
+        expect(result[:error]).to include('File not found')
+        expect(result[:similarity]).to eq(0.0)
+      end
+    end
+
     describe '#initialize' do
       it 'creates baseline and results directories' do
         expect(Dir.exist?(test_helpers.baseline_dir)).to be true
