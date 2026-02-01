@@ -4,7 +4,7 @@ Gem::Specification.new do |spec|
   spec.name          = 'appom'
   spec.version       = Appom::VERSION
   spec.authors       = ['Harry.Tran']
-  spec.email         = ['hoang@platphormcorp.com']
+  spec.email         = ['duchoang.vp@gmail.com']
 
   spec.summary       = 'A comprehensive Page Object Model framework for Appium with advanced testing capabilities'
   spec.description   = 'Appom provides a clean, semantic DSL for mobile application testing. Built on Appium, it includes performance monitoring, visual regression testing, element state tracking, smart waiting, and intelligent caching for enterprise-grade test automation.'
@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
 
   spec.files         = Dir.glob('lib/**/*') + %w[LICENSE.txt README.md]
 
-  spec.required_ruby_version = '>= 2.7.0'
+  spec.required_ruby_version = '>= 3.2.2'
   spec.bindir        = 'exe'
   spec.require_paths = ['lib']
 

@@ -6,8 +6,8 @@
 
 [![Gem Version](https://badge.fury.io/rb/appom.svg)](http://badge.fury.io/rb/appom)
 [![Build Status](https://github.com/hoangtaiki/appom/workflows/CI/badge.svg)](https://github.com/hoangtaiki/appom/actions)
-[![Coverage](https://codecov.io/gh/hoangtaiki/appom/branch/main/graph/badge.svg)](https://codecov.io/gh/hoangtaiki/appom)
-[![Ruby Version](https://img.shields.io/badge/Ruby-2.7%2B-red)](https://www.ruby-lang.org/)
+[![Coverage](https://codecov.io/gh/hoangtaiki/appom/branch/master/graph/badge.svg)](https://codecov.io/gh/hoangtaiki/appom)
+[![Ruby Version](https://img.shields.io/badge/Ruby-3.2.2-red)](https://www.ruby-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://img.shields.io/gem/dt/appom.svg)](https://rubygems.org/gems/appom)
 
