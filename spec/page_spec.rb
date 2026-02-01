@@ -57,7 +57,7 @@ RSpec.describe Appom::Page do
       end
     end
 
-    let(:test_section_class) do
+    let(:nav_section_class) do
       Class.new(Appom::Section) do
         element :nav_link, :class, 'nav-link'
       end

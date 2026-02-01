@@ -456,18 +456,18 @@ RSpec.describe Appom::Screenshot do
       end
 
       context 'when MiniMagick is available' do
-        let(:mock_img1) { double('image1', width: 100, height: 100, dimensions: [100, 100]) }
-        let(:mock_img2) { double('image2', width: 100, height: 100, dimensions: [100, 100]) }
+        let(:first_image) { double('image1', width: 100, height: 100, dimensions: [100, 100]) }
+        let(:second_image) { double('image2', width: 100, height: 100, dimensions: [100, 100]) }
 
         before do
           allow(comparison).to receive(:require).with('mini_magick').and_return(true)
 
           # Mock MiniMagick::Image
           stub_const('MiniMagick::Image', double('MiniMagick::Image'))
-          allow(MiniMagick::Image).to receive(:open).with(image1_path).and_return(mock_img1)
-          allow(MiniMagick::Image).to receive(:open).with(image2_path).and_return(mock_img2)
+          allow(MiniMagick::Image).to receive(:open).with(image1_path).and_return(first_image)
+          allow(MiniMagick::Image).to receive(:open).with(image2_path).and_return(second_image)
 
-          allow(mock_img1).to receive(:compare).with(mock_img2, 'mae').and_return(0.1)
+          allow(first_image).to receive(:compare).with(second_image, 'mae').and_return(0.1)
         end
 
         it 'compares images and returns similarity percentage' do
@@ -477,12 +477,12 @@ RSpec.describe Appom::Screenshot do
         end
 
         it 'resizes images when dimensions differ' do
-          allow(mock_img2).to receive(:dimensions).and_return([200, 200])
-          allow(mock_img2).to receive(:resize)
+          allow(second_image).to receive(:dimensions).and_return([200, 200])
+          allow(second_image).to receive(:resize)
 
           comparison.compare(image1_path, image2_path)
 
-          expect(mock_img2).to have_received(:resize).with('100x100')
+          expect(second_image).to have_received(:resize).with('100x100')
         end
 
         it 'generates difference image when output path provided' do
@@ -490,15 +490,15 @@ RSpec.describe Appom::Screenshot do
 
           comparison.compare(image1_path, image2_path, output_path: output_path)
 
-          expect(comparison).to have_received(:generate_diff_image).with(mock_img1, mock_img2, output_path)
+          expect(comparison).to have_received(:generate_diff_image).with(first_image, second_image, output_path)
         end
 
         it 'does not generate diff image when highlight_differences is false' do
           comp = described_class.new(highlight_differences: false)
           allow(comp).to receive(:require).with('mini_magick').and_return(true)
-          allow(MiniMagick::Image).to receive(:open).with(image1_path).and_return(mock_img1)
-          allow(MiniMagick::Image).to receive(:open).with(image2_path).and_return(mock_img2)
-          allow(mock_img1).to receive(:compare).and_return(0.1)
+          allow(MiniMagick::Image).to receive(:open).with(image1_path).and_return(first_image)
+          allow(MiniMagick::Image).to receive(:open).with(image2_path).and_return(second_image)
+          allow(first_image).to receive(:compare).and_return(0.1)
           allow(comp).to receive(:generate_diff_image)
 
           comp.compare(image1_path, image2_path, output_path: output_path)
@@ -507,7 +507,7 @@ RSpec.describe Appom::Screenshot do
         end
 
         it 'handles comparison errors gracefully' do
-          allow(mock_img1).to receive(:compare).and_raise(StandardError.new('Comparison failed'))
+          allow(first_image).to receive(:compare).and_raise(StandardError.new('Comparison failed'))
 
           result = comparison.compare(image1_path, image2_path)
 
@@ -553,8 +553,8 @@ RSpec.describe Appom::Screenshot do
 
     describe 'private methods' do
       describe '#generate_diff_image' do
-        let(:mock_img1) { double('image1', path: image1_path) }
-        let(:mock_img2) { double('image2', path: image2_path) }
+        let(:baseline_image) { double('image1', path: image1_path) }
+        let(:current_image) { double('image2', path: image2_path) }
         let(:mock_composite) { double('composite') }
         let(:mock_tool) { double('tool') }
 
@@ -567,7 +567,7 @@ RSpec.describe Appom::Screenshot do
         end
 
         it 'creates difference highlight image' do
-          comparison.send(:generate_diff_image, mock_img1, mock_img2, output_path)
+          comparison.send(:generate_diff_image, baseline_image, current_image, output_path)
 
           expect(mock_tool).to have_received(:compose).with('difference')
           expect(mock_tool).to have_received(:<<).with(image1_path)

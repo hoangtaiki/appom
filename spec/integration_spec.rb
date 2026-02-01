@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Phase 2 Integration Tests' do
+RSpec.describe Appom do
   let(:mock_driver) do
     double('driver').tap do |driver|
       # Add screenshot functionality
@@ -50,7 +50,7 @@ RSpec.describe 'Phase 2 Integration Tests' do
 
   before do
     # Set global driver for screenshot and other operations
-    Appom.driver = mock_driver
+    described_class.driver = mock_driver
 
     # Setup mock element behaviors
     allow(mock_element).to receive(:set)

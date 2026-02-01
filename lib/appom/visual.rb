@@ -57,7 +57,9 @@ module Appom::Visual
         if result[:passed]
           log_info("Visual regression test PASSED: #{test_name} (#{(comparison[:similarity] * 100).round(2)}% similarity)")
         else
-          log_error("Visual regression test FAILED: #{test_name} (#{(comparison[:similarity] * 100).round(2)}% similarity, threshold: #{100 - (@threshold * 100)}%)")
+          similarity_percent = (comparison[:similarity] * 100).round(2)
+          threshold_percent = 100 - (@threshold * 100)
+          log_error("Visual regression test FAILED: #{test_name} (#{similarity_percent}% similarity, threshold: #{threshold_percent}%)")
         end
 
         result

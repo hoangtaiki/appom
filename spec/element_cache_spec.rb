@@ -468,7 +468,7 @@ RSpec.describe Appom::ElementCache do
       end
     end
 
-    context 'edge cases and missing coverage' do
+    context 'with edge cases and missing coverage' do
       describe '#valid_element?' do
         it 'returns false for nil element' do
           expect(cache.send(:valid_element?, nil)).to be false

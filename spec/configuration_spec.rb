@@ -246,8 +246,12 @@ RSpec.describe Appom::Configuration do
 
         expect do
           config.validate!
-        end.to raise_error(Appom::ConfigurationError) do |error|
-          expect(error.message).to include('Error 1, Error 2')
+        end.to raise_error(Appom::ConfigurationError)
+
+        begin
+          config.validate!
+        rescue Appom::ConfigurationError => e
+          expect(e.message).to include('Error 1, Error 2')
         end
       end
 

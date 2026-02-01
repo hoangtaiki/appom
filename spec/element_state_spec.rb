@@ -362,25 +362,25 @@ RSpec.describe Appom::ElementState do
       expect(instance).to respond_to(:wait_for_state_change)
     end
 
-    context 'missing coverage and edge cases' do
+    context 'with missing coverage and edge cases' do
       describe '#find_elements_by_state' do
+        let(:first_element) { double('element1') }
+        let(:second_element) { double('element2') }
+        let(:third_element) { double('element3') }
+
         before do
           # Track multiple elements with different states
-          @element1 = double('element1')
-          @element2 = double('element2')
-          @element3 = double('element3')
+          allow(first_element).to receive_messages(displayed?: true, enabled?: true, text: 'Button1')
+          allow(second_element).to receive_messages(displayed?: false, enabled?: true, text: 'Button2')
+          allow(third_element).to receive_messages(displayed?: true, enabled?: false, text: 'Button3')
 
-          allow(@element1).to receive_messages(displayed?: true, enabled?: true, text: 'Button1')
-          allow(@element2).to receive_messages(displayed?: false, enabled?: true, text: 'Button2')
-          allow(@element3).to receive_messages(displayed?: true, enabled?: false, text: 'Button3')
-
-          [@element1, @element2, @element3].each do |el|
+          [first_element, second_element, third_element].each do |el|
             allow(el).to receive_messages(attribute: nil, selected?: false, location: { x: 0, y: 0 }, size: { width: 100, height: 50 })
           end
 
-          tracker.track_element(@element1, name: 'button1')
-          tracker.track_element(@element2, name: 'button2')
-          tracker.track_element(@element3, name: 'button3')
+          tracker.track_element(first_element, name: 'button1')
+          tracker.track_element(second_element, name: 'button2')
+          tracker.track_element(third_element, name: 'button3')
         end
 
         it 'finds elements by displayed state' do

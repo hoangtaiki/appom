@@ -170,7 +170,7 @@ module Appom::SmartWait
         element = _find_element(*find_args)
         if condition.call(element)
           duration = Time.now - start_time
-          log_wait_end(@condition_description, duration.round(3), true)
+          log_wait_end(@condition_description, duration.round(3), success: true)
           return element
         end
         false
@@ -180,7 +180,7 @@ module Appom::SmartWait
       end
     rescue Appom::WaitError
       duration = Time.now - start_time
-      log_wait_end(@condition_description, duration.round(3), false)
+      log_wait_end(@condition_description, duration.round(3), success: false)
       raise Appom::ElementNotFoundError.new(
         "#{find_args.join(', ')} with condition: #{@condition_description}", @timeout,
       )
@@ -198,7 +198,7 @@ module Appom::SmartWait
         elements = _find_elements(*find_args)
         if condition.call(elements)
           duration = Time.now - start_time
-          log_wait_end("#{@condition_description} (collection)", duration.round(3), true)
+          log_wait_end("#{@condition_description} (collection)", duration.round(3), success: true)
           return elements
         end
         false
@@ -207,7 +207,7 @@ module Appom::SmartWait
       end
     rescue Appom::WaitError
       duration = Time.now - start_time
-      log_wait_end("#{@condition_description} (collection)", duration.round(3), false)
+      log_wait_end("#{@condition_description} (collection)", duration.round(3), success: false)
       raise Appom::ElementNotFoundError.new(
         "#{find_args.join(', ')} collection with condition: #{@condition_description}", @timeout,
       )
@@ -225,7 +225,7 @@ module Appom::SmartWait
           element = _find_element(*find_args)
           if condition.call(element)
             duration = Time.now - start_time
-            log_wait_end("condition #{index + 1}", duration.round(3), true)
+            log_wait_end("condition #{index + 1}", duration.round(3), success: true)
             return { index: index, element: element, find_args: find_args }
           end
         rescue StandardError
@@ -235,7 +235,7 @@ module Appom::SmartWait
       end
     rescue Appom::WaitError
       duration = Time.now - start_time
-      log_wait_end('any condition', duration.round(3), false)
+      log_wait_end('any condition', duration.round(3), success: false)
       descriptions = conditions_with_elements.map.with_index do |(find_args, _), i|
         "#{i + 1}: #{find_args.join(', ')}"
       end
@@ -262,8 +262,8 @@ module Appom::SmartWait
       end
     end
 
-    # Wait while condition remains true
-    def wait_while(condition, timeout: @timeout, interval: @interval)
+    # Wait while condition remains true (until it becomes false)
+    def wait_while(condition, timeout: @timeout, interval: @interval) # rubocop:disable Naming/PredicateMethod
       start_time = Time.now
       while condition.call
         raise Appom::TimeoutError, "Condition remained true for #{timeout}s" if Time.now - start_time > timeout

@@ -8,7 +8,6 @@ WaitError = Appom::WaitError
 
 # Test class including the Helpers module for testing
 # Disable RuboCop Metrics/BlockLength for this test class
-# rubocop:disable Naming/PredicateMethod
 RSpec.describe Appom::Helpers do
   let(:test_class) do
     Class.new do
@@ -26,12 +25,12 @@ RSpec.describe Appom::Helpers do
         @mock_element
       end
 
-      def has_test_element
-        true  # Default, can be overridden in tests
+      def has_test_element # rubocop:disable Naming/PredicateMethod --- IGNORE ---
+        true # Default, can be overridden in tests
       end
 
-      def has_no_test_element
-        true  # Default, can be overridden in tests
+      def has_no_test_element # rubocop:disable Naming/PredicateMethod --- IGNORE ---
+        true # Default, can be overridden in tests
       end
 
       def scroll(direction = :down)
@@ -46,11 +45,11 @@ RSpec.describe Appom::Helpers do
         %i[id test_elements]
       end
 
-      def has_element1
+      def has_element1?
         false  # Default, can be overridden in tests
       end
 
-      def has_element2
+      def has_element2?
         false  # Default, can be overridden in tests
       end
 
@@ -566,7 +565,9 @@ RSpec.describe Appom::Helpers do
         allow(helper_instance).to receive(:driver).and_return(mock_driver)
         allow(helper_instance).to receive(:respond_to?).with(:driver).and_return(true)
         allow(File).to receive(:write)
-        allow(Time).to receive_message_chain(:now, :strftime).and_return('20240131_120000')
+        mock_time = double('time')
+        allow(mock_time).to receive(:strftime).and_return('20240131_120000')
+        allow(Time).to receive(:now).and_return(mock_time)
 
         result = helper_instance.dump_page_source('test')
 
@@ -609,7 +610,7 @@ RSpec.describe Appom::Helpers do
     end
 
     describe '#debug_elements_info' do
-      let(:element1) do
+      let(:button_element) do
         double('element1',
                tag_name: 'button',
                text: 'Click me',
@@ -619,7 +620,7 @@ RSpec.describe Appom::Helpers do
                size: { width: 100, height: 30 },)
       end
 
-      let(:element2) do
+      let(:input_element) do
         double('element2',
                tag_name: 'input',
                text: '',
@@ -630,7 +631,7 @@ RSpec.describe Appom::Helpers do
       end
 
       before do
-        allow(helper_instance).to receive(:_all).and_return([element1, element2])
+        allow(helper_instance).to receive(:_all).and_return([button_element, input_element])
       end
 
       it 'returns information about all matching elements' do

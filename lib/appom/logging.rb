@@ -67,7 +67,7 @@ module Appom
       log_debug("WAIT: Starting wait for '#{condition}' (timeout: #{timeout}s)")
     end
 
-    def log_wait_end(condition, duration, success = true)
+    def log_wait_end(condition, duration, success: true)
       status = success ? 'SUCCESS' : 'TIMEOUT'
       log_debug("WAIT: #{status} for '#{condition}' (#{duration}s)")
     end
@@ -90,11 +90,10 @@ module Appom
       logger = Logger.new(output || $stdout)
       logger.level = case level.to_s.downcase
                      when 'debug' then Logger::DEBUG
-                     when 'info' then Logger::INFO
                      when 'warn' then Logger::WARN
                      when 'error' then Logger::ERROR
                      when 'fatal' then Logger::FATAL
-                     else Logger::INFO
+                     else Logger::INFO # This covers both 'info' and any invalid values
                      end
       logger.formatter = proc do |severity, datetime, _progname, msg|
         # Handle the case where datetime might be mocked as an integer in tests

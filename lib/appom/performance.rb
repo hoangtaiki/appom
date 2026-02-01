@@ -124,26 +124,28 @@ module Appom::Performance
 
     # Get slowest operations
     def slowest_operations(limit = 10)
-      @metrics.map do |name, metric|
+      operations = @metrics.map do |name, metric|
         {
           name: name,
           max_duration: metric[:max_duration],
           avg_duration: metric[:total_duration] / metric[:total_calls],
           total_calls: metric[:total_calls],
         }
-      end.sort_by { |op| -op[:max_duration] }.first(limit)
+      end
+      operations.sort_by { |op| -op[:max_duration] }.first(limit)
     end
 
     # Get most frequent operations
     def most_frequent_operations(limit = 10)
-      @metrics.map do |name, metric|
+      operations = @metrics.map do |name, metric|
         {
           name: name,
           total_calls: metric[:total_calls],
           avg_duration: metric[:total_duration] / metric[:total_calls],
           success_rate: (metric[:successful_calls].to_f / metric[:total_calls] * 100).round(2),
         }
-      end.sort_by { |op| -op[:total_calls] }.first(limit)
+      end
+      operations.sort_by { |op| -op[:total_calls] }.first(limit)
     end
 
     # Export metrics to file

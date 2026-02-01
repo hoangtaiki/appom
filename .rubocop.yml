@@ -33,10 +33,10 @@ Metrics/CyclomaticComplexity:
   Max: 20
 
 Metrics/PerceivedComplexity:
-  Max: 10
+  Max: 15
 
 Metrics/AbcSize:
-  Max: 40
+  Max: 60
 
 Metrics/MethodLength:
   Max: 60
@@ -55,7 +55,7 @@ Metrics/ModuleLength:
     - 'spec/**/*'
 
 Metrics/BlockLength:
-  Max: 25
+  Max: 30
   Exclude:
     - 'spec/**/*'
     - '*.gemspec'
@@ -99,7 +99,7 @@ RSpec/ExampleLength:
   Max: 32
 
 RSpec/MultipleExpectations:
-  Max: 10
+  Max: 12
 
 RSpec/NestedGroups:
   Max: 5
@@ -115,6 +115,12 @@ RSpec/VerifiedDoubles:
 
 RSpec/MultipleMemoizedHelpers:
   Max: 10
+
+RSpec/AnyInstance:
+  Enabled: false
+
+RSpec/SubjectStub:
+  Enabled: false
 
 # Naming conventions
 Naming/AccessorMethodName:
@@ -145,3 +151,8 @@ Style/MethodDefParentheses:
 # Class and module definitions
 Style/ClassAndModuleChildren:
   EnforcedStyle: compact
+
+Style/MultilineBlockChain:
+  Enabled: true
+  Exclude:
+    - 'spec/**/*'

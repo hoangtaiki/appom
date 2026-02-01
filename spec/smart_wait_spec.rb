@@ -117,7 +117,7 @@ RSpec.describe Appom::SmartWait do
       end
     end
 
-    describe '.custom_condition' do
+    describe '.custom_condition with basic block' do
       it 'returns the provided block as condition' do
         test_block = -> { true }
         condition = described_class.custom_condition(&test_block)
@@ -147,7 +147,7 @@ RSpec.describe Appom::SmartWait do
       end
     end
 
-    describe '.all_conditions' do
+    describe '.all_conditions with basic usage' do
       it 'returns true if all conditions are true' do
         condition1 = -> { true }
         condition2 = -> { true }
@@ -213,7 +213,7 @@ RSpec.describe Appom::SmartWait do
       end
     end
 
-    describe '.custom_condition' do
+    describe '.custom_condition with mock element' do
       it 'creates a custom condition from block' do
         condition = described_class.custom_condition do
           mock_element.text == 'Button'
@@ -237,7 +237,7 @@ RSpec.describe Appom::SmartWait do
       end
     end
 
-    describe '.all_conditions' do
+    describe '.all_conditions with element conditions' do
       it 'creates a condition that passes only if all sub-conditions pass' do
         condition1 = described_class.element_visible(mock_element)
         condition2 = described_class.element_enabled(mock_element)

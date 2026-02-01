@@ -14,7 +14,7 @@ module Appom::ElementFinder
   end
 
   # Find an element
-  def _find(*find_args) # rubocop:disable Metrics/AbcSize, Metrics/PerceivedComplexity
+  def _find(*find_args)
     args, text, visible = deduce_element_args(find_args)
     wait = Appom::Wait.new(timeout: Appom.max_wait_time)
 
@@ -57,7 +57,7 @@ module Appom::ElementFinder
   end
 
   # Find elements
-  def _all(*find_args) # rubocop:disable Metrics/PerceivedComplexity
+  def _all(*find_args)
     args, text, visible = deduce_element_args(find_args)
     elements = page.find_elements(*args)
     els = []
@@ -78,7 +78,7 @@ module Appom::ElementFinder
 
   # Check page has or has not element with find_args
   # If page has element return TRUE else return FALSE
-  def _check_has_element(*find_args) # rubocop:disable Metrics/PerceivedComplexity
+  def _check_has_element(*find_args)
     args, text, visible = deduce_element_args(find_args)
     elements = page.find_elements(*args)
 

@@ -316,18 +316,19 @@ RSpec.describe Appom::Visual do
     end
 
     describe '#wait_for_visual_stability' do
+      let(:screenshot_counter) { { count: 0 } }
+
       before do
-        @screenshot_count = 0
         allow(test_helpers).to receive(:take_screenshot) do |path|
-          @screenshot_count += 1
-          File.write(path, "screenshot_#{@screenshot_count}")
+          screenshot_counter[:count] += 1
+          File.write(path, "screenshot_#{screenshot_counter[:count]}")
           path
         end
 
         allow(test_helpers).to receive(:take_element_screenshot) do |_element|
-          @screenshot_count += 1
-          path = "element_screenshot_#{@screenshot_count}.png"
-          File.write(path, "element_screenshot_#{@screenshot_count}")
+          screenshot_counter[:count] += 1
+          path = "element_screenshot_#{screenshot_counter[:count]}.png"
+          File.write(path, "element_screenshot_#{screenshot_counter[:count]}")
           path
         end
       end

@@ -72,7 +72,7 @@ class Appom::Wait
         result = yield
         if result
           duration = Time.now - start_time
-          log_wait_end('custom condition', duration.round(3), true)
+          log_wait_end('custom condition', duration.round(3), success: true)
           return result
         end
       rescue StandardError => e
@@ -84,7 +84,7 @@ class Appom::Wait
     end
 
     duration = Time.now - start_time
-    log_wait_end('custom condition', duration.round(3), false)
+    log_wait_end('custom condition', duration.round(3), success: false)
 
     # Handle exceptions differently based on type
     if last_error.is_a?(StandardError) && last_error.instance_of?(StandardError)

@@ -45,7 +45,7 @@ RSpec.describe Appom::Wait do
 
       it 'logs wait start and end' do
         expect(short_wait).to receive(:log_wait_start).with('custom condition', 1)
-        expect(short_wait).to receive(:log_wait_end).with('custom condition', anything, true)
+        expect(short_wait).to receive(:log_wait_end).with('custom condition', 0.0, { success: true })
 
         short_wait.until { true }
       end
@@ -75,7 +75,7 @@ RSpec.describe Appom::Wait do
 
       it 'logs successful wait with duration' do
         expect(short_wait).to receive(:log_wait_start).with('custom condition', 1)
-        expect(short_wait).to receive(:log_wait_end).with('custom condition', anything, true)
+        expect(short_wait).to receive(:log_wait_end).with('custom condition', anything, { success: true })
 
         call_count = 0
         short_wait.until do
@@ -89,15 +89,15 @@ RSpec.describe Appom::Wait do
       it 'raises WaitError after timeout' do
         expect do
           short_wait.until { false }
-        end.to raise_error(Appom::WaitError) do |error|
-          expect(error.timeout).to eq(1)
-          expect(error.message).to include('condition')
+        end.to raise_error(Appom::WaitError) do |e|
+          expect(e.timeout).to eq(1)
+          expect(e.message).to include('condition')
         end
       end
 
       it 'logs failed wait with duration' do
         expect(short_wait).to receive(:log_wait_start).with('custom condition', 1)
-        expect(short_wait).to receive(:log_wait_end).with('custom condition', anything, false)
+        expect(short_wait).to receive(:log_wait_end).with('custom condition', anything, { success: false })
 
         expect { short_wait.until { false } }.to raise_error(Appom::WaitError)
       end
@@ -105,8 +105,8 @@ RSpec.describe Appom::Wait do
       it 'includes error message in WaitError when block raises exceptions' do
         expect do
           short_wait.until { raise StandardError, 'test error' }
-        end.to raise_error(Appom::WaitError) do |error|
-          expect(error.message).to include('test error')
+        end.to raise_error(Appom::WaitError) do |e|
+          expect(e.message).to include('test error')
         end
       end
     end

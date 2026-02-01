@@ -69,26 +69,26 @@ RSpec.describe Appom::Section do
 
     context 'with deeply nested sections' do
       let(:mock_page) { double('page') }
-      let(:mock_section1) { double('section1') }
-      let(:mock_section2) { double('section2') }
-      let(:mock_section3) { double('section3') }
+      let(:root_section) { double('section1') }
+      let(:middle_section) { double('section2') }
+      let(:nested_section) { double('section3') }
 
       before do
         # Set up the chain: section3 -> section2 -> section1 -> page
-        allow(mock_section3).to receive(:is_a?).with(Appom::Page).and_return(false)
-        allow(mock_section3).to receive(:parent).and_return(mock_section2)
+        allow(nested_section).to receive(:is_a?).with(Appom::Page).and_return(false)
+        allow(nested_section).to receive(:parent).and_return(middle_section)
 
-        allow(mock_section2).to receive(:is_a?).with(Appom::Page).and_return(false)
-        allow(mock_section2).to receive(:parent).and_return(mock_section1)
+        allow(middle_section).to receive(:is_a?).with(Appom::Page).and_return(false)
+        allow(middle_section).to receive(:parent).and_return(root_section)
 
-        allow(mock_section1).to receive(:is_a?).with(Appom::Page).and_return(false)
-        allow(mock_section1).to receive(:parent).and_return(mock_page)
+        allow(root_section).to receive(:is_a?).with(Appom::Page).and_return(false)
+        allow(root_section).to receive(:parent).and_return(mock_page)
 
         allow(mock_page).to receive(:is_a?).with(Appom::Page).and_return(true)
       end
 
       it 'traverses through multiple levels to find the page' do
-        deeply_nested_section = described_class.new(mock_section3, mock_root_element)
+        deeply_nested_section = described_class.new(nested_section, mock_root_element)
         expect(deeply_nested_section.parent_page).to eq(mock_page)
       end
     end
@@ -236,7 +236,7 @@ RSpec.describe Appom::Section do
           [:id, 'test']
         end
 
-        def has_test_element
+        def has_test_element?
           true
         end
 
@@ -245,12 +245,7 @@ RSpec.describe Appom::Section do
         end
 
         def method_missing(method_name, *args, &)
-          if method_name.to_s.start_with?('test_element_')
-            # Mock helper method behavior
-            true
-          else
-            super
-          end
+          method_name.to_s.start_with?('test_element_') || super
         end
       end
     end
