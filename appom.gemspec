@@ -6,17 +6,22 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Harry.Tran']
   spec.email         = ['hoang@platphormcorp.com']
 
-  spec.summary       = 'A Page Object Model for Appium'
-  spec.description   = 'Appom gives you a simple, clean and semantic for describing your application. Appom implements the Page Object Model pattern on top of Appium.'
+  spec.summary       = 'A comprehensive Page Object Model framework for Appium with advanced testing capabilities'
+  spec.description   = 'Appom provides a clean, semantic DSL for mobile application testing. Built on Appium, it includes performance monitoring, visual regression testing, element state tracking, smart waiting, and intelligent caching for enterprise-grade test automation.'
   spec.homepage      = 'https://github.com/hoangtaiki/appom'
   spec.license       = 'MIT'
 
   spec.files         = Dir.glob('lib/**/*') + %w[LICENSE.txt README.md]
 
-  spec.required_ruby_version = '>= 2.2.3'
+  spec.required_ruby_version = '>= 2.7.0'
   spec.bindir        = 'exe'
   spec.require_paths = ['lib']
-  spec.add_dependency 'appium_lib', '>= 9.4'
-  spec.add_dependency 'cucumber', '>= 2.3'
-  spec.add_development_dependency 'rubocop', '>= 0.58'
+
+  # Runtime dependencies
+  spec.add_dependency 'appium_lib', '>= 16.0'
+  spec.add_dependency 'cucumber', '~> 9.0'
+  spec.add_dependency 'selenium-webdriver', '>= 4.0'
+
+  # Development dependencies are now specified in the Gemfile.
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end

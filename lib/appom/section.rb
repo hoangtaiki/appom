@@ -1,28 +1,31 @@
-module Appom
-  class Section
-    include Appium
-    include ElementContainer
-    include ElementFinder
+# frozen_string_literal: true
 
-    attr_reader :root_element, :parent
+require 'appom/helpers'
 
-    def initialize(parent, root_element)
-      @parent = parent
-      @root_element = root_element
-    end
+# Base section class for Appom automation framework
+# Represents a section of a page with its own elements
+class Appom::Section
+  include Appium
+  include Appom::ElementContainer
+  include Appom::ElementFinder
+  include Appom::Helpers
 
-    def page
-      root_element || super
-    end
+  attr_reader :root_element, :parent
 
-    def parent_page
-      candidate_page = parent
-      until candidate_page.is_a?(Appom::Page)
-        candidate_page = candidate_page.parent
-      end
-      candidate_page
-    end
+  def initialize(parent, root_element)
+    @parent = parent
+    @root_element = root_element
+  end
 
-    private
+  def page
+    return root_element if root_element
+
+    parent
+  end
+
+  def parent_page
+    candidate_page = parent
+    candidate_page = candidate_page.parent until candidate_page.is_a?(Appom::Page)
+    candidate_page
   end
 end

@@ -1,81 +1,209 @@
-# Appom
+<div align="center">
+
+# 📱 Appom
+
+**The Modern Page Object Model Framework for Mobile Test Automation**
+
 [![Gem Version](https://badge.fury.io/rb/appom.svg)](http://badge.fury.io/rb/appom)
+[![Build Status](https://github.com/hoangtaiki/appom/workflows/CI/badge.svg)](https://github.com/hoangtaiki/appom/actions)
+[![Coverage](https://codecov.io/gh/hoangtaiki/appom/branch/main/graph/badge.svg)](https://codecov.io/gh/hoangtaiki/appom)
+[![Ruby Version](https://img.shields.io/badge/Ruby-2.7%2B-red)](https://www.ruby-lang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://img.shields.io/gem/dt/appom.svg)](https://rubygems.org/gems/appom)
 
-A Page Object Model for Appium
+*Write mobile tests that are maintainable, readable, and reliable*
 
-Appom gives you a simple, clean and semantic for describing your application. Appom implements the Page Object Model pattern on top of Appium.
+[Quick Start](#-quick-start) • [Documentation](Documentation.md) • [Examples](#-examples) • [Contributing](#-contributing)
 
-## Idea
-If you have used the [Page Object Model](https://medium.com/tech-tajawal/page-object-model-pom-design-pattern-f9588630800b) (POM) with Appium you will probably know about [Capybara](https://github.com/teamcapybara/capybara) and [SitePrism](https://github.com/natritmeyer/site_prism). But CapyBara and SitePrism are designed for the web rather than the mobile.
+</div>
 
-Using POM with SitePrism and CapyBara makes interacting with Appium really not that direct. And Appium is not confirmed to work well with these two libraries.
+---
 
-Wishing to use the Page Object Model in the simplest way we created Appom. The idea created for Appom is taken from CapyBara and SitePrism.
+## ✨ Why Appom?
 
-## Installation
+Tired of flaky mobile tests that break every release? **Appom** transforms mobile test automation with:
 
-Add this line to your application's Gemfile:
+```ruby
+# Traditional approach 😢
+driver.find_element(:id, 'login_btn').click
+sleep(2) # Hope the page loads...
+driver.find_element(:xpath, '//input[@type="email"]').send_keys('user@test.com')
+
+# Appom way 🎉
+login_page.login('user@test.com', 'password')
+expect(home_page).to have_dashboard
+```
+
+## 🚀 Key Features
+
+<table>
+  <tr>
+    <td>🎯 <strong>Smart Page Objects</strong></td>
+    <td>Semantic DSL that reads like natural language</td>
+  </tr>
+  <tr>
+    <td>🔄 <strong>Intelligent Retry</strong></td>
+    <td>Auto-retry with exponential backoff for flaky elements</td>
+  </tr>
+  <tr>
+    <td>📊 <strong>Performance Monitoring</strong></td>
+    <td>Track test performance and identify bottlenecks</td>
+  </tr>
+  <tr>
+    <td>🎨 <strong>Visual Testing</strong></td>
+    <td>Automated visual regression testing built-in</td>
+  </tr>
+  <tr>
+    <td>🛡️ <strong>Robust Error Handling</strong></td>
+    <td>Detailed diagnostics with screenshots and context</td>
+  </tr>
+  <tr>
+    <td>📱 <strong>Cross-Platform</strong></td>
+    <td>Single codebase for iOS and Android</td>
+  </tr>
+</table>
+
+## 📦 Installation
+
+```bash
+gem install appom
+```
+
+Or add to your `Gemfile`:
 
 ```ruby
 gem 'appom'
 ```
 
-And then execute:
+## ⚡ Quick Start
 
-    $ bundle
+### 1. Initialize Appom
 
-Or install it yourself as:
-
-    $ gem install appom
-
-## Usage
-
-Here's an overview of how Appom is designed to be used:
-
-### Register Appium Driver
-Appium use appium directly to find elements. So that to use Appom you must register Appium Driver for Appom
 ```ruby
+require 'appom'
+
 Appom.register_driver do
-  options = {
-    appium_lib: appium_lib_options,
-    caps: caps
-  }
-  Appium::Driver.new(options, false)
-end
-```
-`appium_lib_options` and `caps` are options to initiate a appium driver. You can follow [Appium Ruby Client](https://github.com/appium/ruby_lib)
-
-### Change default max wait time
-```ruby
-Appom.configure do |config|
-  config.max_wait_time = 30
+  Appium::Driver.new({
+    caps: {
+      platformName: 'iOS',
+      deviceName: 'iPhone 15',
+      app: '/path/to/your/app.ipa'
+    },
+    appium_lib: { server_url: 'http://localhost:4723/wd/hub' }
+  })
 end
 ```
 
-### Define a page
+### 2. Create Page Objects
+
 ```ruby
 class LoginPage < Appom::Page
-  element :email, :accessibility_id, 'email_text_field'
-  element :password, :accessibility_id, 'password_text_field'
-  element :sign_in_button, :accessibility_id, 'sign_in_button'
+  element :email, :accessibility_id, 'email_field'
+  element :password, :accessibility_id, 'password_field'
+  element :login_btn, :accessibility_id, 'login_button'
+  
+  def login(email, password)
+    self.email.set(email)
+    self.password.set(password)
+    login_btn.tap
+  end
 end
 ```
 
-The Appom Wiki has lots of additional information about Appom. Please browse the Wiki after finishing this README:
-https://github.com/hoangtaiki/appom/wiki
+### 3. Write Tests
 
-## Example
-[authentication-appom-appium](https://github.com/hoangtaiki/authentication-appom-appium) is an example about using Appom with Appium. 
+```ruby
+RSpec.describe 'Login Flow' do
+  it 'logs user in successfully' do
+    login_page = LoginPage.new
+    login_page.login('test@example.com', 'password')
+    
+    expect(HomePage.new).to have_welcome_message
+  end
+end
+```
 
+**That's it!** No more `sleep()`, no more flaky selectors, no more mysterious failures.
 
-## Contributing
+## 🎯 Examples
 
-Bug reports and pull requests are welcome on GitHub at [Appom](https://github.com/hoangtaiki/appom). This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+<details>
+<summary><strong>Advanced Page Object with Sections</strong></summary>
 
-## License
+```ruby
+class ShoppingPage < Appom::Page
+  section :header, HeaderSection, :id, 'header'
+  sections :products, ProductSection, :class, 'product-card'
+  
+  def add_product_to_cart(product_name)
+    product = products.find { |p| p.name.text == product_name }
+    product.add_to_cart
+    wait_for_cart_update
+  end
+end
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+class ProductSection < Appom::Section
+  element :name, :class, 'product-name'
+  element :price, :class, 'product-price'
+  element :add_btn, :class, 'add-to-cart-btn'
+  
+  def add_to_cart
+    scroll_to_and_tap(:add_btn)
+  end
+end
+```
 
-## Code of Conduct
+</details>
 
-Everyone interacting in the Appom project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/hoangtaiki/appom/blob/master/CODE_OF_CONDUCT.md).
+<details>
+<summary><strong>Smart Waiting & Retry Logic</strong></summary>
+
+```ruby
+class PaymentPage < Appom::Page
+  element :card_field, :id, 'card_number'
+  element :submit_btn, :id, 'submit_payment'
+  
+  def process_payment(card_number)
+    # Auto-retry for flaky elements
+    interact_with_retry(:card_field, :send_keys, text: card_number)
+    
+    # Wait for specific conditions
+    tap_and_wait(:submit_btn)
+    wait_for_any(:success_message, :error_message, timeout: 30)
+  end
+end
+```
+
+</details>
+
+<details>
+<summary><strong>Visual Testing Integration</strong></summary>
+
+```ruby
+class ProductPage < Appom::Page
+  def verify_product_display
+    # Automatic visual regression testing
+    take_visual_snapshot('product_page')
+    compare_visual_baseline('product_page', threshold: 0.95)
+  end
+end
+```
+
+</details>
+
+## 📚 Documentation
+
+- **[Complete Documentation](Documentation.md)** - Comprehensive guide with advanced features
+- **[API Reference](https://rubydoc.info/gems/appom)** - Detailed API documentation  
+- **[Best Practices](Documentation.md#best-practices)** - Testing patterns and conventions
+- **[Troubleshooting](Documentation.md#troubleshooting)** - Common issues and solutions
+
+---
+
+<div align="center">
+  
+**Made with ❤️ by the mobile testing community**
+
+[⬆ Back to top](#-appom)
+
+</div>

@@ -13,3 +13,6 @@
 .rspec_status
 Gemfile.lock
 
+appom_metrics_*.json
+element_screenshot_*.png
+element_state_tracking_*.yaml

@@ -1,0 +1,53 @@
+# Appom Configuration File
+# This file contains default configuration settings for the Appom gem
+
+# Environment-specific settings
+default: &default
+  appium:
+    url: 'http://localhost:4723/wd/hub'
+    desired_caps:
+      platformName: 'iOS'
+      platformVersion: '14.0'
+      deviceName: 'iPhone Simulator'
+      automationName: 'XCUITest'
+  
+  retry:
+    max_attempts: 3
+    base_delay: 0.5
+    backoff_multiplier: 1.5
+    max_delay: 30
+
+  logging:
+    level: 'INFO'
+    file: nil  # Log to stdout by default
+    format: '[%{time}] %{level} [%{progname}] %{msg}'
+
+  element_cache:
+    enabled: true
+    max_size: 100
+    ttl: 300  # seconds
+
+  wait:
+    default_timeout: 30
+    polling_interval: 0.5
+
+  visual_validation:
+    enabled: false
+    threshold: 0.95
+    baseline_dir: './visual_baselines'
+    results_dir: './visual_results'
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+  logging:
+    level: 'WARN'  # Reduce verbosity during tests
+
+production:
+  <<: *default
+  retry:
+    max_attempts: 5
+  logging:
+    level: 'ERROR'

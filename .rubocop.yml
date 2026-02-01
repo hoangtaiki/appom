@@ -1,32 +1,158 @@
 AllCops:
-  TargetRubyVersion: 2.2.3
+  TargetRubyVersion: 3.2.2
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - 'vendor/**/*'
+    - 'db/**/*'
+    - 'coverage/**/*'
+    - 'screenshots/**/*'
+    - 'visual_baselines/**/*'
+    - 'visual_results/**/*'
+    - 'custom/**/*'
+    - 'bin/**/*'
+    - '*.gemspec'
 
-Documentation:
+plugins:
+  - rubocop-performance
+  - rubocop-rspec
+
+# Documentation requirements for libraries
+Style/Documentation:
+  Enabled: true
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
+
+# Security
+Security/Eval:
+  Enabled: true
+
+# Complexity metrics - stricter for library code
+Metrics/CyclomaticComplexity:
+  Max: 20
+
+Metrics/PerceivedComplexity:
+  Max: 15
+
+Metrics/AbcSize:
+  Max: 60
+
+Metrics/MethodLength:
+  Max: 60
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/ClassLength:
+  Max: 600
+  Exclude:
+    - 'lib/appom/configuration.rb' # Configuration class is naturally longer
+    - 'spec/**/*'
+
+Metrics/ModuleLength:
+  Max: 200
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/BlockLength:
+  Max: 30
+  Exclude:
+    - 'spec/**/*'
+    - '*.gemspec'
+    - 'Rakefile'
+
+# Layout and style
+Layout/LineLength:
+  Max: 160
+  AllowedPatterns: 
+    - '^\s*#'  # Allow long comments
+  Exclude:
+    - 'spec/**/*'
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+# Style preferences for library code
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+  ConsistentQuotesInMultiline: true
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+
+# Performance optimizations
+Performance/RedundantMerge:
+  Enabled: true
+
+Performance/StringInclude:
+  Enabled: true
+
+# RSpec specific rules
+RSpec/ExampleLength:
+  Max: 32
+
+RSpec/MultipleExpectations:
+  Max: 12
+
+RSpec/NestedGroups:
+  Max: 5
+
+RSpec/SpecFilePathFormat:
   Enabled: false
 
-AccessorMethodName:
+RSpec/MessageSpies:
   Enabled: false
 
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+
+RSpec/AnyInstance:
+  Enabled: false
+
+RSpec/SubjectStub:
+  Enabled: false
+
+# Naming conventions
+Naming/AccessorMethodName:
+  Enabled: false
+
+Naming/PredicatePrefix:
+  Enabled: true
+  NamePrefix: ['is_', 'has_', 'have_']
+  ForbiddenPrefixes: ['is_']
+  AllowedMethods: ['is_a?']
+
+# Allow regex literals without %r
 Style/RegexpLiteral:
   Enabled: false
 
-BlockLength:
-  Exclude:
-    - 'appom.gemspec'
+# Modern Ruby features
+Style/HashSyntax:
+  EnforcedStyle: ruby19_no_mixed_keys
 
-Style/TrailingCommaInHashLiteral:
-  EnforcedStyleForMultiline: comma
+# Error handling
+Style/RescueStandardError:
+  EnforcedStyle: explicit
+
+# Method definitions
+Style/MethodDefParentheses:
+  EnforcedStyle: require_parentheses
+
+# Class and module definitions
+Style/ClassAndModuleChildren:
+  EnforcedStyle: compact
+
+Style/MultilineBlockChain:
   Enabled: true
-
-# Commonly used screens these days easily fit more than 80 characters.
-Metrics/LineLength:
-  Max: 240
-
-# Too short methods lead to extraction of single-use methods, which can make
-# the code easier to read (by naming things), but can also clutter the class
-Metrics/MethodLength:
-  Max: 20
-
-# The guiding principle of classes is SRP, SRP can't be accurately measured by LoC
-Metrics/ClassLength:
-  Max: 1500
+  Exclude:
+    - 'spec/**/*'
