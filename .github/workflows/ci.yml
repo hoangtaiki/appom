@@ -60,7 +60,7 @@ jobs:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     permissions:
-      contents: read
+      contents: write
       id-token: write 
 
     steps:
