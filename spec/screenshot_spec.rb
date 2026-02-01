@@ -24,7 +24,7 @@ RSpec.describe Appom::Screenshot do
 
   after do
     # Clean up test directory
-    FileUtils.rm_rf(test_directory) if Dir.exist?(test_directory)
+    FileUtils.rm_rf(test_directory)
   end
 
   describe Appom::Screenshot::ScreenshotManager do
@@ -35,7 +35,7 @@ RSpec.describe Appom::Screenshot do
         manager = described_class.new(directory: test_directory)
         expect(manager.directory).to eq(test_directory)
         expect(manager.format).to eq(:png)
-        expect(manager.auto_timestamp).to eq(true)
+        expect(manager.auto_timestamp).to be(true)
         expect(manager.quality).to eq(90)
       end
 
@@ -48,7 +48,7 @@ RSpec.describe Appom::Screenshot do
         )
         expect(manager.directory).to eq(test_directory)
         expect(manager.format).to eq(:jpg)
-        expect(manager.auto_timestamp).to eq(false)
+        expect(manager.auto_timestamp).to be(false)
         expect(manager.quality).to eq(75)
       end
 
@@ -278,7 +278,7 @@ RSpec.describe Appom::Screenshot do
       it 'uses default of 7 days when not specified' do
         allow(File).to receive(:mtime).and_return(Time.now - (8 * 24 * 60 * 60))
 
-        count = manager.cleanup_old_screenshots
+        manager.cleanup_old_screenshots
 
         expect(File).to have_received(:delete).at_least(:once)
       end
@@ -431,14 +431,14 @@ RSpec.describe Appom::Screenshot do
         comp = described_class.new
 
         expect(comp.instance_variable_get(:@tolerance)).to eq(0.1)
-        expect(comp.instance_variable_get(:@highlight_differences)).to eq(true)
+        expect(comp.instance_variable_get(:@highlight_differences)).to be(true)
       end
 
       it 'creates comparison with custom settings' do
         comp = described_class.new(tolerance: 0.05, highlight_differences: false)
 
         expect(comp.instance_variable_get(:@tolerance)).to eq(0.05)
-        expect(comp.instance_variable_get(:@highlight_differences)).to eq(false)
+        expect(comp.instance_variable_get(:@highlight_differences)).to be(false)
       end
     end
 
@@ -630,7 +630,7 @@ RSpec.describe Appom::Screenshot do
         described_class.configure(directory: test_directory, auto_timestamp: nil)
 
         manager = described_class.manager
-        expect(manager.auto_timestamp).to eq(false)
+        expect(manager.auto_timestamp).to be(false)
       end
     end
 

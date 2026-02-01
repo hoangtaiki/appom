@@ -25,8 +25,7 @@ RSpec.describe Appom::ElementFinder do
   let(:mock_elements) { [mock_element, mock_element] }
 
   before do
-    allow(mock_driver).to receive(:find_element).and_return(mock_element)
-    allow(mock_driver).to receive(:find_elements).and_return(mock_elements)
+    allow(mock_driver).to receive_messages(find_element: mock_element, find_elements: mock_elements)
     allow(Appom).to receive(:max_wait_time).and_return(5)
     allow(finder_instance).to receive(:log_debug)
     allow(finder_instance).to receive(:log_element_action)

@@ -482,8 +482,7 @@ RSpec.describe Appom::SmartWait do
       allow(conditional_wait).to receive(:page).and_return(mock_page)
       allow(conditional_wait).to receive(:log_wait_start)
       allow(conditional_wait).to receive(:log_wait_end)
-      allow(mock_page).to receive(:find_element).and_return(mock_element)
-      allow(mock_page).to receive(:find_elements).and_return([mock_element])
+      allow(mock_page).to receive_messages(find_element: mock_element, find_elements: [mock_element])
     end
 
     describe '#initialize' do
@@ -526,7 +525,7 @@ RSpec.describe Appom::SmartWait do
       end
 
       it 'accepts condition as block parameter' do
-        result = conditional_wait.for_element(:id, 'test') { |el| el.displayed? }
+        result = conditional_wait.for_element(:id, 'test', &:displayed?)
 
         expect(result).to eq(mock_element)
       end
@@ -550,7 +549,7 @@ RSpec.describe Appom::SmartWait do
         mock_page = double('page')
         allow(mock_page).to receive(:find_element).and_raise(StandardError, 'Not found').once
         allow(mock_page).to receive(:find_element).and_return(mock_element)
-        condition = ->(el) { el.displayed? }
+        condition = lambda(&:displayed?)
         wait = Appom::SmartWait::ConditionalWait.new(condition: condition)
         allow(wait).to receive(:page).and_return(mock_page)
 
@@ -562,7 +561,7 @@ RSpec.describe Appom::SmartWait do
 
     describe '#for_elements' do
       it 'waits for elements collection with condition' do
-        condition = ->(elements) { elements.length > 0 }
+        condition = ->(elements) { !elements.empty? }
         mock_page = double('page')
         wait = Appom::SmartWait::ConditionalWait.new(condition: condition)
         allow(wait).to receive(:page).and_return(mock_page)
@@ -591,8 +590,8 @@ RSpec.describe Appom::SmartWait do
         allow(mock_page).to receive(:find_element).with(:id, 'first').and_return(element1)
         allow(mock_page).to receive(:find_element).with(:id, 'second').and_return(element2)
 
-        condition1 = ->(el) { el.displayed? }
-        condition2 = ->(el) { el.displayed? }
+        condition1 = lambda(&:displayed?)
+        condition2 = lambda(&:displayed?)
 
         conditions = [
           [[:id, 'first'], condition1],
@@ -632,8 +631,8 @@ RSpec.describe Appom::SmartWait do
         allow(mock_page).to receive(:find_element).with(:id, 'first').and_raise(StandardError)
         allow(mock_page).to receive(:find_element).with(:id, 'second').and_return(element2)
 
-        condition1 = ->(el) { el.displayed? }
-        condition2 = ->(el) { el.displayed? }
+        condition1 = lambda(&:displayed?)
+        condition2 = lambda(&:displayed?)
 
         conditions = [
           [[:id, 'first'], condition1],
@@ -831,8 +830,7 @@ RSpec.describe Appom::SmartWait do
         context 'when page method not available' do
           before do
             allow(conditional_wait).to receive(:respond_to?).with(:page).and_return(false)
-            allow(Appom.driver).to receive(:find_element).and_return(mock_element)
-            allow(Appom.driver).to receive(:find_elements).and_return([mock_element])
+            allow(Appom.driver).to receive_messages(find_element: mock_element, find_elements: [mock_element])
           end
 
           it 'uses Appom.driver to find element' do

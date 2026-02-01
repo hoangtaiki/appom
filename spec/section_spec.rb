@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Helper to allow double inside class definitions
 def test_double(*, **)
   RSpec::Mocks::Double.new(*, **)

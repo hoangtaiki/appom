@@ -201,21 +201,19 @@ module Appom::Screenshot
 
     def sanitize_name(name)
       result = name.to_s
-      
+
       # First replace :: with a special placeholder that won't be affected by other operations
       double_underscore_marker = 'XDOUBLEUNDERSCOREX'
       result = result.gsub('::', double_underscore_marker)
-      
+
       # Replace all non-alphanumeric chars (except our marker characters) with underscore
       result = result.gsub(/[^a-zA-Z0-9_X-]/, '_')
-      
+
       # Squeeze multiple underscores into single ones, but don't touch our marker
       result = result.squeeze('_')
-      
+
       # Finally restore the double underscores for the original ::
-      result = result.gsub(double_underscore_marker, '__')
-      
-      result
+      result.gsub(double_underscore_marker, '__')
     end
 
     def validate_format(format)

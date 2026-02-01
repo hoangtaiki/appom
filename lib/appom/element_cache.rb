@@ -28,7 +28,7 @@ module Appom::ElementCache
     end
 
     # Get element from cache by key
-    def get(cache_key) # rubocop:disable Metrics/AbcSize
+    def get(cache_key)
       unless @cache.key?(cache_key)
         @stats[:misses] += 1
         return nil
@@ -200,7 +200,7 @@ module Appom::ElementCache
       log_debug('Evicted LRU element from cache')
     end
 
-    def cleanup_expired # rubocop:disable Metrics/AbcSize
+    def cleanup_expired
       current_time = Time.now
       expired_keys = []
 
@@ -272,7 +272,7 @@ module Appom::ElementCache
 
     public
 
-    def find_elements(strategy, locator, use_cache: true) # rubocop:disable Metrics/CyclomaticComplexity
+    def find_elements(strategy, locator, use_cache: true)
       # If original method doesn't exist, delegate to the page/driver
       return page.find_elements(strategy, locator) unless respond_to?(:original_find_elements)
 

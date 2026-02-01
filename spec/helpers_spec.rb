@@ -6,6 +6,9 @@ require 'spec_helper'
 ElementNotFoundError = Appom::ElementNotFoundError
 WaitError = Appom::WaitError
 
+# Test class including the Helpers module for testing
+# Disable RuboCop Metrics/BlockLength for this test class
+# rubocop:disable Naming/PredicateMethod
 RSpec.describe Appom::Helpers do
   let(:test_class) do
     Class.new do
@@ -237,8 +240,7 @@ RSpec.describe Appom::Helpers do
     describe '#scroll_to_and_tap' do
       it 'taps element if already visible' do
         allow(helper_instance).to receive(:respond_to?).with('has_test_element').and_return(true)
-        allow(helper_instance).to receive(:has_test_element).and_return(true)
-        allow(helper_instance).to receive(:wait_and_tap).and_return(mock_element)
+        allow(helper_instance).to receive_messages(has_test_element: true, wait_and_tap: mock_element)
         # Spy on :scroll so we can assert it was not called
         allow(helper_instance).to receive(:scroll)
 
@@ -268,8 +270,7 @@ RSpec.describe Appom::Helpers do
       it 'uses custom scroll direction' do
         allow(helper_instance).to receive(:respond_to?).with('has_test_element').and_return(true)
         allow(helper_instance).to receive(:has_test_element).and_return(false, true)
-        allow(helper_instance).to receive(:scroll).and_return(nil)
-        allow(helper_instance).to receive(:wait_and_tap).and_return(mock_element)
+        allow(helper_instance).to receive_messages(scroll: nil, wait_and_tap: mock_element)
 
         helper_instance.scroll_to_and_tap(:test_element, direction: :up)
 
@@ -278,8 +279,7 @@ RSpec.describe Appom::Helpers do
 
       it 'raises error after max scrolls' do
         allow(helper_instance).to receive(:respond_to?).with('has_test_element').and_return(true)
-        allow(helper_instance).to receive(:has_test_element).and_return(false)
-        allow(helper_instance).to receive(:scroll).and_return(nil)
+        allow(helper_instance).to receive_messages(has_test_element: false, scroll: nil)
 
         expect do
           helper_instance.scroll_to_and_tap(:test_element)
@@ -382,13 +382,12 @@ RSpec.describe Appom::Helpers do
       end
 
       it 'waits for any element to appear' do
-        allow(helper_instance).to receive(:respond_to?).and_return(true)
         call_count = 0
         allow(helper_instance).to receive(:has_element1) do
           call_count += 1
           call_count > 1
         end
-        allow(helper_instance).to receive(:has_element2).and_return(false)
+        allow(helper_instance).to receive_messages(respond_to?: true, has_element2: false)
         allow(wait_instance).to receive(:until).and_yield.and_return(:element1)
 
         result = helper_instance.wait_for_any(:element1, :element2)
@@ -397,9 +396,7 @@ RSpec.describe Appom::Helpers do
       end
 
       it 'raises ElementNotFoundError when no element appears' do
-        allow(helper_instance).to receive(:respond_to?).and_return(true)
-        allow(helper_instance).to receive(:has_element1).and_return(false)
-        allow(helper_instance).to receive(:has_element2).and_return(false)
+        allow(helper_instance).to receive_messages(respond_to?: true, has_element1: false, has_element2: false)
         allow(wait_instance).to receive(:until).and_raise(Appom::WaitError)
 
         expect do
@@ -696,12 +693,11 @@ RSpec.describe Appom::Helpers do
 
     describe '#element_performance_stats' do
       before do
-        allow(Performance).to receive(:stats).and_return({
-                                                           'test_element_tap' => { duration: 0.1 },
-                                                           'other_element_click' => { duration: 0.2 },
-                                                           'test_element_scroll' => { duration: 0.15 },
-                                                         })
-        allow(Performance).to receive(:summary).and_return({ total_operations: 10 })
+        allow(Performance).to receive_messages(stats: {
+                                                 'test_element_tap' => { duration: 0.1 },
+                                                 'other_element_click' => { duration: 0.2 },
+                                                 'test_element_scroll' => { duration: 0.15 },
+                                               }, summary: { total_operations: 10 },)
       end
 
       it 'returns stats for specific element' do

@@ -369,16 +369,13 @@ RSpec.describe Appom::ElementState do
           @element1 = double('element1')
           @element2 = double('element2')
           @element3 = double('element3')
-          
+
           allow(@element1).to receive_messages(displayed?: true, enabled?: true, text: 'Button1')
           allow(@element2).to receive_messages(displayed?: false, enabled?: true, text: 'Button2')
           allow(@element3).to receive_messages(displayed?: true, enabled?: false, text: 'Button3')
-          
+
           [@element1, @element2, @element3].each do |el|
-            allow(el).to receive(:attribute) { |attr| nil }
-            allow(el).to receive(:selected?).and_return(false)
-            allow(el).to receive(:location).and_return({ x: 0, y: 0 })
-            allow(el).to receive(:size).and_return({ width: 100, height: 50 })
+            allow(el).to receive_messages(attribute: nil, selected?: false, location: { x: 0, y: 0 }, size: { width: 100, height: 50 })
           end
 
           tracker.track_element(@element1, name: 'button1')
@@ -416,9 +413,9 @@ RSpec.describe Appom::ElementState do
 
         it 'adds and notifies observers' do
           tracker.add_observer(&observer)
-          
-          element_id = tracker.track_element(mock_element, name: 'test')
-          
+
+          tracker.track_element(mock_element, name: 'test')
+
           expect(observer_calls).not_to be_empty
           expect(observer_calls.last.first).to eq(:element_tracked)
         end
@@ -426,20 +423,20 @@ RSpec.describe Appom::ElementState do
         it 'removes observers' do
           observer_proc = tracker.add_observer(&observer)
           tracker.remove_observer(observer_proc)
-          
+
           tracker.track_element(mock_element, name: 'test')
-          
+
           expect(observer_calls).to be_empty
         end
 
         it 'notifies observers on state changes' do
           tracker.add_observer(&observer)
           element_id = tracker.track_element(mock_element, name: 'test')
-          
+
           observer_calls.clear
           allow(mock_element).to receive(:text).and_return('Changed Text')
           tracker.update_element_state(element_id)
-          
+
           expect(observer_calls.any? { |call| call.first == :state_changed }).to be true
         end
       end
@@ -447,13 +444,13 @@ RSpec.describe Appom::ElementState do
       describe '#tracking_enabled=' do
         it 'disables tracking when set to false' do
           element_id = tracker.track_element(mock_element)
-          
+
           tracker.tracking_enabled = false
           allow(mock_element).to receive(:text).and_return('Changed')
-          
-          expect { tracker.update_element_state(element_id) }.not_to change { 
-            tracker.tracked_elements[element_id][:current_state][:text] 
-          }
+
+          expect { tracker.update_element_state(element_id) }.not_to(change do
+            tracker.tracked_elements[element_id][:current_state][:text]
+          end)
         end
 
         it 'logs when tracking is disabled' do
@@ -475,14 +472,14 @@ RSpec.describe Appom::ElementState do
 
         it 'exports data in JSON format' do
           file_path = tracker.export_tracking_data(format: :json)
-          
+
           expect(File.exist?(file_path)).to be true
           data = JSON.parse(File.read(file_path))
-          
+
           expect(data['summary']).to be_a(Hash)
           expect(data['tracked_elements']).to be_a(Hash)
           expect(data['state_history']).to be_an(Array)
-          
+
           File.delete(file_path)
         end
 
@@ -490,7 +487,7 @@ RSpec.describe Appom::ElementState do
           file_path = tracker.export_tracking_data(format: :yaml)
 
           expect(File.exist?(file_path)).to be true
-          data = YAML.safe_load(File.read(file_path), permitted_classes: [Time, Symbol], aliases: true)
+          data = YAML.safe_load_file(file_path, permitted_classes: [Time, Symbol], aliases: true)
 
           expect(data[:summary]).to be_a(Hash)
           expect(data[:tracked_elements]).to be_a(Hash)
@@ -500,18 +497,18 @@ RSpec.describe Appom::ElementState do
         end
 
         it 'raises error for unsupported format' do
-          expect {
+          expect do
             tracker.export_tracking_data(format: :xml)
-          }.to raise_error(ArgumentError, /Unsupported format/)
+          end.to raise_error(ArgumentError, /Unsupported format/)
         end
 
         it 'uses custom file path when provided' do
           custom_path = 'custom_export_test.json'
           file_path = tracker.export_tracking_data(file_path: custom_path)
-          
+
           expect(file_path).to eq(custom_path)
           expect(File.exist?(custom_path)).to be true
-          
+
           File.delete(custom_path)
         end
       end
@@ -528,11 +525,10 @@ RSpec.describe Appom::ElementState do
             case attr
             when :id then 'test_id'
             when :class then 'test_class'
-            else nil
             end
           end
           allow(attr_element).to receive(:tag_name).and_return('button')
-          
+
           element_id = tracker.send(:generate_element_id, attr_element, nil)
           expect(element_id).to eq('test_id_test_class_button')
         end
@@ -540,7 +536,7 @@ RSpec.describe Appom::ElementState do
         it 'handles elements without attributes' do
           basic_element = double('basic_element')
           allow(basic_element).to receive(:attribute).and_return(nil)
-          
+
           element_id = tracker.send(:generate_element_id, basic_element, nil)
           expect(element_id).to match(/element_\d+/)
         end
@@ -548,7 +544,7 @@ RSpec.describe Appom::ElementState do
         it 'handles exceptions during attribute access' do
           broken_element = double('broken_element')
           allow(broken_element).to receive(:attribute).and_raise(StandardError)
-          
+
           element_id = tracker.send(:generate_element_id, broken_element, nil)
           expect(element_id).to match(/element_\d+/)
         end
@@ -559,10 +555,9 @@ RSpec.describe Appom::ElementState do
             case attr
             when :id then 'test@id#special'
             when :class then 'class with spaces!'
-            else nil
             end
           end
-          
+
           element_id = tracker.send(:generate_element_id, special_element, nil)
           expect(element_id).to eq('test_id_special_class_with_spaces_')
         end
@@ -578,9 +573,9 @@ RSpec.describe Appom::ElementState do
           allow(problematic_element).to receive(:attribute).and_raise(StandardError)
           allow(problematic_element).to receive(:location).and_raise(StandardError)
           allow(problematic_element).to receive(:size).and_raise(StandardError)
-          
+
           state = tracker.send(:capture_element_state, problematic_element)
-          
+
           expect(state[:exists]).to be false
           expect(state[:displayed]).to be false
           expect(state[:enabled]).to be false
@@ -600,7 +595,7 @@ RSpec.describe Appom::ElementState do
         it 'handles disabled tracking' do
           element_id = tracker.track_element(mock_element)
           tracker.tracking_enabled = false
-          
+
           expect { tracker.update_element_state(element_id) }.not_to raise_error
         end
       end
@@ -610,14 +605,14 @@ RSpec.describe Appom::ElementState do
 
         it 'raises timeout error in wait_for_state with proc condition' do
           never_true_condition = ->(_state) { false }
-          
-          expect {
+
+          expect do
             tracker.wait_for_state(element_id, never_true_condition, timeout: 0.1)
-          }.to raise_error(Appom::TimeoutError, /Element did not reach expected state/)
+          end.to raise_error(Appom::TimeoutError, /Element did not reach expected state/)
         end
 
         it 'handles invalid condition types in wait_for_state' do
-          result = tracker.wait_for_state(element_id, "invalid", timeout: 0.1)
+          result = tracker.wait_for_state(element_id, 'invalid', timeout: 0.1)
           expect(result).to be_nil
         rescue Appom::TimeoutError
           # Expected for invalid condition
@@ -660,9 +655,9 @@ RSpec.describe Appom::ElementState do
           most_active = tracker.send(:most_active_elements, 2)
 
           expect(most_active).to eq({
-            'high_activity' => 5,
-            'medium_activity' => 3
-          })
+                                      'high_activity' => 5,
+                                      'medium_activity' => 3,
+                                    })
         end
       end
     end
@@ -671,6 +666,7 @@ RSpec.describe Appom::ElementState do
       let(:monitoring_test_class) do
         Class.new do
           include Appom::ElementState::Monitoring
+
           track_state_changes
 
           def initialize(element)
@@ -723,6 +719,7 @@ RSpec.describe Appom::ElementState do
         it 'does nothing when tracking disabled' do
           disabled_class = Class.new do
             include Appom::ElementState::Monitoring
+
             def initialize(*args); end
           end
           disabled_instance = disabled_class.new(mock_element)
@@ -772,9 +769,9 @@ RSpec.describe Appom::ElementState do
         original_tracker = Appom::ElementState.tracker
         custom_tracker = Appom::ElementState::Tracker.new
         Appom::ElementState.tracker = custom_tracker
-        
+
         expect(Appom::ElementState.tracker).to be(custom_tracker)
-        
+
         # Reset to default
         Appom::ElementState.tracker = original_tracker
       end

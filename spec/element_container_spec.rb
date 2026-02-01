@@ -62,8 +62,7 @@ RSpec.describe Appom::ElementContainer do
   let(:mock_element) { double('element', enabled?: true, displayed?: true) }
 
   before do
-    allow(mock_driver).to receive(:find_element).and_return(mock_element)
-    allow(mock_driver).to receive(:find_elements).and_return([mock_element, mock_element])
+    allow(mock_driver).to receive_messages(find_element: mock_element, find_elements: [mock_element, mock_element])
     Appom.driver = mock_driver
   end
 
@@ -412,7 +411,7 @@ RSpec.describe Appom::ElementContainer do
           # Simulate element with empty args
           allow(test_page_class).to receive(:create_helper_method) do |name, *args, &block|
             if args.empty?
-              test_page_class.define_method(name) { raise Appom::InvalidElementError.new(name.to_s) }
+              test_page_class.define_method(name) { raise Appom::InvalidElementError, name.to_s }
             else
               block.call
             end

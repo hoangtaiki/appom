@@ -40,7 +40,7 @@ module Appom::ElementState
     end
 
     # Update element state and detect changes
-    def update_element_state(element_id) # rubocop:disable Metrics/AbcSize
+    def update_element_state(element_id)
       return unless @tracking_enabled
 
       tracked = @tracked_elements[element_id]
@@ -417,8 +417,8 @@ module Appom::ElementState
       @element_id ||= ::Appom::ElementState.tracker.generate_element_id(self, nil)
     end
 
-    def initialize(*args)
-      super(*args) if defined?(super)
+    def initialize(*)
+      super if defined?(super)
     end
   end
 

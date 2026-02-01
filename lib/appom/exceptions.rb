@@ -126,8 +126,5 @@ module Appom
 
   # Argument validation errors
   class ArgumentError < AppomError
-    def initialize(message)
-      super
-    end
   end
 end

@@ -483,7 +483,7 @@ RSpec.describe Appom::ElementCache do
           stale_element = double('stale_element')
           allow(stale_element).to receive(:displayed?).and_raise(StandardError)
           allow(stale_element).to receive(:respond_to?).with(:displayed?).and_return(true)
-           
+
           expect(cache.send(:valid_element?, stale_element)).to be false
         end
 
@@ -491,7 +491,7 @@ RSpec.describe Appom::ElementCache do
           valid_element = double('valid_element')
           allow(valid_element).to receive(:displayed?).and_return(true)
           allow(valid_element).to receive(:respond_to?).with(:displayed?).and_return(true)
-          
+
           expect(cache.send(:valid_element?, valid_element)).to be true
         end
       end
@@ -511,7 +511,7 @@ RSpec.describe Appom::ElementCache do
           allow(new_element).to receive(:respond_to?).with(:displayed?).and_return(true)
 
           result = cache.get_or_find(:id, 'missing') { new_element }
-          
+
           expect(result).to eq(new_element)
           expect(cache.size).to eq(1)
         end
@@ -523,10 +523,10 @@ RSpec.describe Appom::ElementCache do
           allow(new_element).to receive(:respond_to?).with(:displayed?).and_return(true)
 
           key = cache.store(:id, 'expiring', expired_element)
-          
+
           # Manually set timestamp to past to simulate expiration
           cache.instance_variable_get(:@cache)[key][1] = Time.now - 400
-          
+
           result = cache.get_or_find(:id, 'expiring') { new_element }
           expect(result).to eq(new_element)
         end
@@ -536,7 +536,7 @@ RSpec.describe Appom::ElementCache do
         it 'removes element by find arguments' do
           element = double('element')
           cache.store(:id, 'to_invalidate', element)
-          
+
           expect(cache.size).to eq(1)
           cache.invalidate(:id, 'to_invalidate')
           expect(cache.size).to eq(0)
@@ -569,7 +569,7 @@ RSpec.describe Appom::ElementCache do
         it 'handles array arguments (old pattern)' do
           key1 = cache.generate_key([:id, 'test'])
           key2 = cache.generate_key(:id, 'test')
-          
+
           expect(key1).to eq(key2)
         end
 
@@ -577,7 +577,7 @@ RSpec.describe Appom::ElementCache do
           complex_args = [:xpath, '//div[@class="test"]', { timeout: 5 }]
           key1 = cache.generate_key(*complex_args)
           key2 = cache.generate_key(*complex_args)
-          
+
           expect(key1).to eq(key2)
         end
       end
@@ -591,10 +591,10 @@ RSpec.describe Appom::ElementCache do
         it 'properly handles cleanup when no expired items' do
           cache.store(:id, 'test1', double('element1'))
           cache.store(:id, 'test2', double('element2'))
-          
+
           initial_size = cache.size
           cache.send(:cleanup_expired)
-          
+
           expect(cache.size).to eq(initial_size)
         end
 
@@ -616,7 +616,7 @@ RSpec.describe Appom::ElementCache do
         it 'handles hit rate calculation with only misses' do
           cache.get('nonexistent1')
           cache.get('nonexistent2')
-          
+
           expect(cache.statistics[:hit_rate]).to eq(0.0)
         end
 
@@ -627,6 +627,6 @@ RSpec.describe Appom::ElementCache do
     end
 
     # Temporarily commenting out CacheAwareFinder tests to focus on core coverage
-    # These can be fixed separately 
+    # These can be fixed separately
   end
 end

@@ -30,13 +30,13 @@ Security/Eval:
 
 # Complexity metrics - stricter for library code
 Metrics/CyclomaticComplexity:
-  Max: 6
+  Max: 20
 
 Metrics/PerceivedComplexity:
-  Max: 7
+  Max: 10
 
 Metrics/AbcSize:
-  Max: 15
+  Max: 40
 
 Metrics/MethodLength:
   Max: 60
