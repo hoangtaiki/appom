@@ -14,5 +14,6 @@ gem 'rubocop', '~> 1.84'
 gem 'rubocop-performance', '~> 1.23'
 gem 'rubocop-rspec', '~> 3.2'
 gem 'simplecov', '~> 0.22'
+gem 'simplecov-cobertura' # For CI/Codecov integration
 gem 'webmock', '~> 3.19'
 gem 'yard', '~> 0.9'

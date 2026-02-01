@@ -1,0 +1,97 @@
+name: Bug Report
+description: File a bug report to help us improve
+title: "[BUG] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! 
+        The more details you provide, the faster we can help you.
+
+  - type: input
+    id: gem-version
+    attributes:
+      label: Appom Version
+      description: What version of Appom are you using?
+      placeholder: "e.g., 1.2.3"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: What platform are you testing on?
+      options:
+        - iOS
+        - Android
+        - Both
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what you see!
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: code-sample
+    attributes:
+      label: Code Sample
+      description: Please provide a minimal code sample that reproduces the issue
+      render: ruby
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Please copy and paste any relevant log output (hide sensitive information)
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: device
+    attributes:
+      label: Device/Emulator
+      description: What device or emulator are you using?
+      placeholder: "e.g., iPhone 14 Pro, Pixel 7, etc."
+    validations:
+      required: false
+
+  - type: input
+    id: appium-version
+    attributes:
+      label: Appium Version
+      description: What version of Appium are you using?
+      placeholder: "e.g., 2.0.0"
+    validations:
+      required: false

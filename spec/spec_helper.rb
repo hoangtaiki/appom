@@ -1,12 +1,39 @@
 # frozen_string_literal: true
 
-# SimpleCov disabled for testing
+# SimpleCov with enhanced configuration
 require 'simplecov'
-SimpleCov.start do
-  add_filter '/spec/'
-  add_filter '/vendor/'
-  coverage_dir 'coverage'
-  minimum_coverage 80
+
+# Only run coverage in CI or when explicitly requested
+if ENV['CI'] || ENV['COVERAGE']
+  require 'simplecov-cobertura' if ENV['CI']
+  
+  SimpleCov.start do
+    add_filter '/spec/'
+    add_filter '/vendor/'
+    add_filter '/coverage/'
+    
+    # Group coverage results for better reporting
+    add_group 'Core', 'lib/appom.rb'
+    add_group 'Page Objects', 'lib/appom/page.rb'
+    add_group 'Elements', 'lib/appom/element_'
+    add_group 'Helpers', 'lib/appom/helpers.rb'
+    add_group 'Configuration', 'lib/appom/configuration.rb'
+    add_group 'Advanced', ['lib/appom/performance.rb', 'lib/appom/visual.rb', 'lib/appom/smart_wait.rb']
+    
+    coverage_dir 'coverage'
+    minimum_coverage 85  # Increased for better quality
+    minimum_coverage_by_file 80
+    
+    # Configure formatters based on environment
+    if ENV['CI']
+      formatter SimpleCov::Formatter::MultiFormatter.new([
+        SimpleCov::Formatter::HTMLFormatter,
+        SimpleCov::Formatter::CoberturaFormatter  # For Codecov
+      ])
+    else
+      formatter SimpleCov::Formatter::HTMLFormatter
+    end
+  end
 end
 
 require 'bundler/setup'

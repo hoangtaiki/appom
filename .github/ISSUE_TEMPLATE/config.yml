@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Community Discussion
+    url: https://github.com/hoangtaiki/appom/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📚 Documentation
+    url: https://github.com/hoangtaiki/appom/blob/main/Documentation.md
+    about: Check the comprehensive documentation first
+  - name: 🚀 Examples & Tutorials
+    url: https://github.com/hoangtaiki/appom/discussions/categories/show-and-tell
+    about: Share your Appom usage examples and learn from others
