@@ -39,7 +39,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: hoangtaiki/appom
 
-
   security:
     runs-on: ubuntu-latest
     steps:
@@ -60,6 +59,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
+    permissions:
+      contents: read
+      id-token: write 
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -73,15 +76,6 @@ jobs:
       - name: Build gem
         run: gem build appom.gemspec
 
-      - name: Publish to RubyGems
+      - name: Publish to RubyGems (Trusted Publishing)
         if: contains(github.event.head_commit.message, '[release]')
-        env:
-          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
-        run: |
-          mkdir -p ~/.gem
-          cat << EOF > ~/.gem/credentials
-          ---
-          :rubygems_api_key: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
-          EOF
-          chmod 600 ~/.gem/credentials
-          gem push appom-*.gem
+        uses: rubygems/release-gem@v1
